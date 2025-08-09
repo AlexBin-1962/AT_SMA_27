@@ -1,0 +1,9 @@
+{
+  "municipios": {
+    "3": "San Miguel de Allende",
+    "9": "Comonfort",
+    "32": "San José Iturbide"},
+    
+    "distritos_locales": [9,17],
+    "distritos_federales": [2]
+}
