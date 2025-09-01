@@ -288,7 +288,7 @@ function ubicarUsuario(){
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    fetch('/data/geo/AT_SME_27.geojson')
+    fetch('https://alexbin-1962.github.io/AT_SMA_27/data/geo/AT_SME_27.geojson')
       .then(response => response.json())
       .then(data => {
         capaSecciones = L.geoJSON(data, {
