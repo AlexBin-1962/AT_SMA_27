@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App de Campo - Captura de Datos</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+    }
+    .leaflet-popup-content {
+      font-size: 14px;
+    }
+    .form-popup {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 300px;
+    }
+    .form-popup h3 {
+      margin-top: 10px;
+      margin-bottom: 4px;
+      font-size: 16px;
+      border-bottom: 1px solid #ccc;
+    }
+    input, select, textarea, button {
+      padding: 6px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    label::before {
+      content: attr(data-icon) ' ';
+    }
+    #mensaje-confirmacion, #mensaje-error {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      z-index: 1000;
+      display: none;
+    }
+    #mensaje-confirmacion {
+      background-color: #4CAF50;
+      color: white;
+    }
+    #mensaje-error {
+      background-color: #f44336;
+      color: white;
+    }
+
+    /* --- Popup compacto y desplazable --- */
+    .leaflet-popup-content-wrapper{
+      border-radius: 14px;
+      box-shadow: 0 12px 28px rgba(0,0,0,.22);
+    }
+
+    .leaflet-popup-content{
+      /* margen interno por defecto de Leaflet */
+      margin: 8px 8px 10px;
+      /* ¡clave!: limitar alto y permitir scroll interno */
+      max-height: 72vh;       /* 72% de la ventana */
+      overflow: auto;
+      /* opcional: ancho un poco mayor en laptop */
+      max-width: 380px;
+    }
+
+    /* Formulario compacto */
+    .form-popup{
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    /* Títulos pegajosos para secciones largas */
+    .form-popup h3{
+      margin: 8px 0 4px;
+      font-size: 15px;
+      font-weight: 700;
+      position: sticky;
+      top: 0;                 /* “se pega” arriba al hacer scroll */
+      background: #fff;
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+      z-index: 1;
+    }
+
+    /* Campos */
+    .form-popup input,
+    .form-popup select,
+    .form-popup textarea{
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    /* Contenedor de botones fijo al fondo del popup */
+    .form-popup .actions{
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+      padding-top: 8px;
+      border-top: 1px solid #eee;
+    }
+
+    /* Botones */
+    .form-popup button[type="submit"]{
+      background: #16a34a; color:#fff; border:none; border-radius:8px;
+      padding: 8px 10px; font-weight:600; cursor:pointer;
+    }
+    .form-popup button[type="button"]{
+      background: #f3f4f6; color:#111827; border:1px solid #e5e7eb; border-radius:8px;
+      padding: 8px 10px; cursor:pointer;
+    }
+
+    /* Ajustes en móviles: popup un poco más alto */
+    @media (max-width: 640px){
+      .leaflet-popup-content{ max-height: 78vh; max-width: 92vw; }
+    }
+
+    @media (max-width: 480px){
+    .leaflet-popup-content{ max-width: 92vw; max-height: 80vh; }
+    .form-popup{ gap: 6px; font-size: 13px; }
+    .form-popup input, .form-popup select, .form-popup textarea{ padding: 5px 7px; font-size: 13px; }
+  }
+
+
+
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <button onclick="ubicarUsuario()" style="position:absolute;top:100px;left:10px;z-index:1000;padding:6px 12px;background-color:#e4b9d2;color:#2e0886;border:none;border-radius:4px;">📍 Por Ubicacion</button>
+
+  <button id="btn-por-domicilio"
+        style="position:absolute;top:150px;left:10px;z-index:1000;padding:6px 12px;background:#e4b9d2;color:#2e0886;border:none;border-radius:4px;">
+  🏠 Por Domicilio
+  </button>
+
+<div id="panel-capturas" style="position:absolute;top:900px;left:10px;z-index:1000;display:flex;gap:6px;flex-wrap:wrap;">
+  <button id="btn-toggle-capturas" style="padding:6px 10px;border-radius:6px;border:1px solid #0b86ac;background:#e4b9d2;">👁️ Ver capturas (0)</button>
+  <button id="btn-exp-geojson"     style="padding:6px 10px;border-radius:6px;border:1px solid #0b86ac;background:#e0f2fe;">⬇️ GeoJSON</button>
+  <button id="btn-exp-csv"         style="padding:6px 10px;border-radius:6px;border:1px solid #0b86ac;background:#fef9c3;">⬇️ CSV</button>
+  <button id="btn-clear-capturas"  style="padding:6px 10px;border-radius:6px;border:1px solid #0b86ac;background:#fee2e2;">🗑️ Limpiar</button>
+</div>
+
+
+
+<div id="mensaje-confirmacion" style="display:none;position:fixed;top:12px;right:12px;z-index:2000;background:#16a34a;color:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.2)">✓ Guardado</div>
+<div id="mensaje-error"        style="display:none;position:fixed;top:12px;right:12px;z-index:2000;background:#dc2626;color:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.2)">✗ Revisa los obligatorios</div>
+
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+
+
+// Genera el formulario del popup usando lat/lng actuales
+function formHTML(lat, lng){
+
+    // ⬇️ Detecta sección/DF/DL antes de armar el HTML
+  let sec = '—', df = '—', dl = '—';
+  try{
+    const hit = lookupSectionProps(lat, lng);
+    if (hit && hit.props){
+      sec = hit.props.SECCION ?? '—';
+      df  = hit.props.DISTRITO_F ?? '—';
+      dl  = hit.props.DISTRITO_L ?? '—';
+    }
+  }catch(e){ /* sin capa aún */ }
+
+  return `
+    <form onsubmit="guardarDato(event, ${lat}, ${lng})" class="form-popup">
+
+      <h3>📝 Observaciones</h3>
+          <textarea id="observaciones" rows="2" placeholder="🎤 Puedes dictar tocando el micrófono del teclado..."></textarea>
+
+      <h3>📄 Datos Personales</h3>
+      <label data-icon="👤" for="nombre">Nombre *</label>
+      <input type="text" id="nombre" required>
+      <label data-icon="👤" for="paterno">Apellido paterno *</label>
+      <input type="text" id="paterno" required>
+      <label data-icon="👤" for="materno">Apellido materno</label>
+      <input type="text" id="materno">
+      <label data-icon="📞" for="telefono">Teléfono *</label>
+      <input type="tel" id="telefono" required>
+
+      <h3>📍 Ubicación</h3>
+      <label data-icon="🏠" for="calle">Calle *</label>
+      <input type="text" id="calle" required>
+      <label data-icon="🔢" for="numero">Número *</label>
+      <input type="text" id="numero" required>
+      <label data-icon="📡" for="zona">Tipo de zona</label>
+      <select id="zona">
+        <option value="">--Selecciona--</option>
+        <option>Urbana</option>
+        <option>Rural</option>
+        <option>Marginada</option>
+        <option>Conurbada</option>
+      </select>
+      <label data-icon="📶" for="cobertura">¿Cobertura celular?</label>
+      <select id="cobertura">
+        <option>Sí</option>
+        <option>No</option>
+      </select>
+
+      <h3>🗳️ Clasificación</h3>
+      <label data-icon="🏷️" for="tipo">Tipo *</label>
+      <select id="tipo" required>
+        <option value="">--Selecciona--</option>
+        <option>Simpatizante</option>
+        <option>Casilla</option>
+        <option>Liderazgo</option>
+        <option>Activista rival</option>
+      </select>
+      <label data-icon="🎯" for="prioridad">Nivel de prioridad</label>
+      <select id="prioridad">
+        <option>Alta</option>
+        <option>Media</option>
+        <option>Baja</option>
+      </select>
+      <label data-icon="🧭" for="influencia">Categoría de influencia</label>
+      <select id="influencia">
+        <option>Zona clave</option>
+        <option>Zona volátil</option>
+        <option>Zona consolidada</option>
+      </select>
+
+      <h3>📸 Foto / Evidencia</h3>
+      <input type="file" accept="image/*" capture="environment">
+
+
+
+    <h3>🌐 Sistema</h3>
+    <label>Sección</label><input id="sec_auto" type="text" readonly value="—">
+    <label>Distrito Local</label><input id="dl_auto" type="text" readonly value="—">
+    <label>Distrito Federal</label><input id="df_auto" type="text" readonly value="—">
+    <label>Latitud</label><input type="text" readonly value="${lat.toFixed(6)}">
+    <label>Longitud</label><input type="text" readonly value="${lng.toFixed(6)}">
+    <label>Fecha</label><input type="text" readonly value="${new Date().toLocaleString()}">
+
+    <div class="actions">
+      <button type="submit">Guardar</button>
+      <button type="button" onclick="map.closePopup()">Cancelar</button>
+    </div>
+
+
+      </form>
+
+        `;
+    }
+
+// Geolocaliza y abre el popup con el formulario (usa el HTML de arriba)
+function ubicarUsuario(){
+    if (!navigator.geolocation) {
+      alert("Geolocalización no disponible.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        // Pinta el marcador y abre el formulario
+        L.marker([lat, lng]).addTo(map)
+          .bindPopup(formHTML(lat, lng))
+          .openPopup();
+
+        // Enfoca la vista
+        map.setView([lat, lng], Math.max(map.getZoom(), 17));
+      },
+      (err) => {
+        console.error(err);
+        alert("No pudimos obtener tu ubicación. Revisa permisos de GPS.");
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+    );
+  }
+
+    const map = L.map('map').setView([20.86492084469482, -100.72329019456481],11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    fetch('/data/geo/AT_SME_27.geojson')
+      .then(response => response.json())
+      .then(data => {
+        capaSecciones = L.geoJSON(data, {
+          onEachFeature: function (feature, layer) {
+            const props = feature.properties;
+            layer.on('click', function () {
+              const content = `
+                <strong>Sección:</strong> ${props.SECCION || 'N/D'}<br>
+                <strong>Distrito F:</strong> ${props.DISTRITO_F || 'N/D'}<br>
+                <strong>Distrito L:</strong> ${props.DISTRITO_L || 'N/D'}`;
+              layer.bindPopup(content).openPopup();
+            });
+          }
+        }).addTo(map);
+      });
+
+// Capa para registros (si no la creaste antes)
+window.registrosLayer = window.registrosLayer || L.layerGroup().addTo(map);
+
+function guardarDato(e, lat, lng) {
+    e.preventDefault();
+
+    // Helpers
+    const get = id => (document.getElementById(id)?.value || '').trim();
+    const req = v => v && v.length > 0;
+
+      // ⬇️ asigna sección/DF/DL al registro
+    let sec = null, df = null, dl = null;
+    try{
+      const hit = lookupSectionProps(lat, lng);
+      if (hit && hit.props){
+        sec = hit.props.SECCION ?? null;
+        df  = hit.props.DISTRITO_F ?? null;
+        dl  = hit.props.DISTRITO_L ?? null;
+      }
+    }catch(e){}
+
+
+    // Lee campos (ajusta/añade los que necesites)
+    const reg = {
+      ts:        new Date().toISOString(),
+      nombre:    get('nombre'),
+      paterno:   get('paterno'),
+      materno:   get('materno'),
+      telefono:  get('telefono'),
+      calle:     get('calle'),
+      numero:    get('numero'),
+      zona:      get('zona'),
+      cobertura: get('cobertura'),
+      tipo:      get('tipo'),
+      prioridad: get('prioridad'),
+      influencia:get('influencia'),
+      observaciones: get('observaciones'),
+      lat, lng
+    };
+
+    // Validaciones mínimas (obligatorios)
+    if (!req(reg.nombre) || !req(reg.paterno) || !req(reg.telefono) ||
+        !req(reg.calle)  || !req(reg.numero)  || !req(reg.tipo)) {
+      mostrarMensaje('error');
+      return;
+    }
+
+    // Normaliza teléfono a solo dígitos (opcional)
+    reg.telefono = reg.telefono.replace(/\D/g, '');
+
+    // Persiste en localStorage
+    const KEY = 'registrosCampo';
+    const arr = JSON.parse(localStorage.getItem(KEY) || '[]');
+    arr.push(reg);
+    localStorage.setItem(KEY, JSON.stringify(arr));
+
+    // Dibuja punto permanente
+    L.circleMarker([lat, lng], { radius:6, color:'#cd6da0', fillColor:'#cd6da0', fillOpacity:0.9 })
+      .addTo(window.registrosLayer)
+      .bindPopup(`<b>${reg.nombre} ${reg.paterno}</b><br>${reg.calle} ${reg.numero}<br>${new Date(reg.ts).toLocaleString()}`);
+
+    mostrarMensaje('confirmacion');
+    map.closePopup();
+  }
+
+
+    function mostrarMensaje(tipo) {
+      const ok = document.getElementById('mensaje-confirmacion');
+      const error = document.getElementById('mensaje-error');
+      if (tipo === 'confirmacion') {
+        ok.style.display = 'block';
+        setTimeout(() => ok.style.display = 'none', 3000);
+      } else {
+        error.style.display = 'block';
+        setTimeout(() => error.style.display = 'none', 3000);
+      }
+    }
+  </script>
+
+<script>
+    // --- Ray casting en los anillos exteriores de cada polígono (suficiente para secciones) ---
+    function _pointInRing(lat, lng, ring){
+      let inside = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++){
+        const xi = ring[i].lng, yi = ring[i].lat;
+        const xj = ring[j].lng, yj = ring[j].lat;
+        const intersect = ((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    // Devuelve true si el punto está dentro del polígono (o multipolígono)
+// ¡Arreglo clave! Funciona con Polygon y MultiPolygon
+function pointInLayer(lat, lng, layer){
+  const pt = L.latLng(lat, lng);
+  if (!layer.getBounds().contains(pt)) return false; // filtro rápido
+
+  const rings = _outerRingsFrom(layer);
+  for (const ring of rings){
+    if (_pointInRing(lat, lng, ring)) return true;
+  }
+  return false;
+}
+
+    // Busca la sección que contiene el punto; si ninguna, devuelve la más cercana (por centroide de bounds)
+    function lookupSectionProps(lat, lng){
+      if (!window.capaSecciones || typeof capaSecciones.eachLayer !== 'function') return null;
+
+      let best = null, bestDist = Infinity;
+      const p = L.latLng(lat, lng);
+
+      capaSecciones.eachLayer(l => {
+        const props = l.feature?.properties || {};
+        // 1) intento por contención
+        if (pointInLayer(lat, lng, l)){
+          best = { layer: l, props, dist: 0 };
+          bestDist = 0;
+          return; // es contenedor: suficiente
+        }
+        // 2) si no contiene, guardamos el más cercano por centro de bounds
+        const c = l.getBounds().getCenter();
+        const d = map.distance(p, c);
+        if (d < bestDist){
+          best = { layer: l, props, dist: d };
+          bestDist = d;
+        }
+      });
+
+      return best; // {layer, props:{SECCION,DISTRITO_F,DISTRITO_L,...}, dist}
+}
+</script>
+
+<script>
+
+  // Aplana anillos (sirve para Polygons y MultiPolygons en Leaflet)
+    function _outerRingsFrom(layer){
+      const rings = [];
+      const ll = layer.getLatLngs();
+
+      function walk(node){
+        if (!node) return;
+        if (Array.isArray(node)){
+          // ¿Es un anillo? (array de LatLng)
+          if (node.length && node[0] instanceof L.LatLng){
+            rings.push(node);           // anillo exterior o interior
+          } else {
+            node.forEach(walk);         // sigue bajando niveles
+          }
+        }
+      }
+      walk(ll);
+      // Nos quedamos SOLO con los primeros anillos de cada polígono (exteriores)
+      // Heurística: en Leaflet el primer anillo de cada nivel suele ser el exterior
+      // Si hubiera hoyos y los quisieras excluir, esto ya funciona porque probamos sobre todos
+      return rings;
+    }
+
+</script>
+
+<script>
+  window.placeMarker = function(lat, lng, titulo = null){
+    // Guarda la última chincheta para debug
+    window._lastPin = { lat, lng };
+
+    // Marker + popup con tu formulario
+    const m = L.marker([lat, lng]).addTo(map);
+    m.bindPopup(formHTML(lat, lng)).openPopup();
+    if (titulo) m.bindTooltip(titulo, { permanent:false, direction:'top' });
+    map.setView([lat, lng], Math.max(map.getZoom(), 17));
+
+    // Rellena SEC / DL / DF cuando el DOM del popup ya existe (con reintentos)
+    function fillTerritory(tries = 0){
+      const secEl = document.getElementById('sec_auto');
+      const dlEl  = document.getElementById('dl_auto');
+      const dfEl  = document.getElementById('df_auto');
+
+      // Espera a que se monte el DOM del popup
+      if (!secEl || !dlEl || !dfEl){
+        if (tries < 10) return setTimeout(() => fillTerritory(tries + 1), 50);
+        return; // ya no reintenta
+      }
+
+      try {
+        const terr = (typeof resolveTerritory === 'function') ? (resolveTerritory(lat, lng) || {}) : {};
+        secEl.value = terr.seccion   ?? '—';
+        dlEl.value  = terr.distritoL ?? '—';
+        dfEl.value  = terr.distritoF ?? '—';
+      } catch (e) {
+        console.warn('[AT27] resolveTerritory error:', e);
+      }
+    }
+
+    fillTerritory();
+  };
+</script>
+
+
+
+
+
+<script>
+    // Construye un viewbox de la capa de secciones para sesgar la búsqueda a SMA
+    function _nominatimViewbox(){
+      try{
+        if (!window.capaSecciones || !capaSecciones.getBounds) return '';
+        const b  = capaSecciones.getBounds();       // Leaflet bounds
+        const sw = b.getSouthWest(), ne = b.getNorthEast();
+        // Nominatim: viewbox = left,top,right,bottom  (lonMin, latMax, lonMax, latMin)
+        return `&viewbox=${sw.lng},${ne.lat},${ne.lng},${sw.lat}&bounded=1`;
+      }catch{ return ''; }
+    }
+
+    // Prefiere “road” y variantes para prellenar Calle
+    function _pickStreet(addr){
+      return addr.road || addr.pedestrian || addr.residential || addr.footway || addr.path || '';
+    }
+
+    // Geocodificar por domicilio y abrir el mismo popup/form
+    async function geocodificarPorDomicilio(){
+      const q = prompt("Domicilio (calle y número, colonia):");
+      if (!q) return;
+
+      // Ancla a la ciudad/estado para mayor precisión
+      const fullQ = `${q}, San Miguel de Allende, Guanajuato`;
+      const vb = _nominatimViewbox();
+
+      try{
+        const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&countrycodes=mx${vb}&q=${encodeURIComponent(fullQ)}`;
+        const res = await fetch(url, { headers:{ 'Accept':'application/json' }});
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0){
+          mostrarMensaje('error');
+          alert('No se encontró esa dirección. Intenta ser más específico (calle, número, colonia).');
+          return;
+        }
+
+        const { lat, lon, display_name, address } = data[0];
+        const latNum = parseFloat(lat), lonNum = parseFloat(lon);
+
+        // Coloca el marcador y abre el MISMO formulario de ubicarUsuario()
+        placeMarker(latNum, lonNum, display_name);
+
+
+        // Prellenar Calle / Número si Nominatim lo provee
+        setTimeout(() => {
+          const a = address || {};
+          const calle  = _pickStreet(a);
+          const numero = a.house_number || '';
+          const $ = id => document.getElementById(id);
+          if ($('calle')  && calle)  $('calle').value  = calle;
+          if ($('numero') && numero) $('numero').value = numero;
+        }, 0);
+
+      }catch(e){
+        console.error(e);
+        mostrarMensaje('error');
+        alert('Error al geocodificar. Revisa conexión e intenta de nuevo.');
+      }
+    }
+
+    // Conecta el botón
+    document.getElementById('btn-por-domicilio')
+      ?.addEventListener('click', geocodificarPorDomicilio);
+</script>
+
+<script>
+// Devuelve { seccion, distritoF, distritoL } del polígono que contiene el punto;
+// si no logra contención, usa el polígono MÁS CERCANO (centro de bounds).
+function resolveTerritory(lat, lng){
+  // 1) Intento principal: si tienes lookupSectionProps, úsalo
+  try{
+    if (typeof lookupSectionProps === 'function'){
+      const hit = lookupSectionProps(lat, lng); // ideal: contiene → dist=0; si no, trae el nearest
+      if (hit && hit.props){
+        const p = hit.props;
+        return {
+          seccion:   p.SECCION    ?? null,
+          distritoF: p.DISTRITO_F ?? null,
+          distritoL: p.DISTRITO_L ?? null
+        };
+      }
+    }
+  }catch(e){ /* sigue al fallback */ }
+
+  // 2) FALLBACK DEMO-SAFE: elegir SIEMPRE el polígono más cercano
+  try{
+    let best = null, bestD = Infinity;
+    const P = L.latLng(lat, lng);
+    if (window.capaSecciones && typeof capaSecciones.eachLayer === 'function'){
+      capaSecciones.eachLayer(l=>{
+        const c = l.getBounds().getCenter();
+        const d = map.distance(P, c);
+        if (d < bestD){ bestD = d; best = l; }
+      });
+    }
+    const p = best?.feature?.properties || {};
+    return {
+      seccion:   p.SECCION    ?? null,
+      distritoF: p.DISTRITO_F ?? null,
+      distritoL: p.DISTRITO_L ?? null
+    };
+  }catch(e){
+    return { seccion:null, distritoF:null, distritoL:null };
+  }
+}
+</script>
+
+<script>
+    // === Config y capa visual ===
+    const KEY_CAPTURAS = 'registrosCampo';
+    window.registrosLayer = window.registrosLayer || L.layerGroup().addTo(map);
+    let capturasVisibles = true;
+
+    // === Helpers de almacenamiento ===
+    function getCapturas(){ return JSON.parse(localStorage.getItem(KEY_CAPTURAS) || '[]'); }
+    function setCapturas(arr){
+      localStorage.setItem(KEY_CAPTURAS, JSON.stringify(arr));
+      updateCapturasCount();
+    }
+
+    // === Dibuja un registro guardado ===
+    function drawRegistro(reg){
+      const lat = Number(reg.lat), lng = Number(reg.lng);
+      if (!isFinite(lat) || !isFinite(lng)) return;
+
+      L.circleMarker([lat, lng], {radius:6, color:'#cd6da0', fillColor:'#cd6da0', fillOpacity:0.9})
+        .addTo(registrosLayer)
+        .bindPopup(
+          `<b>${(reg.nombre||'').toUpperCase()} ${(reg.paterno||'').toUpperCase()}</b>`+
+          `<br>${reg.calle||''} ${reg.numero||''}`+
+          (reg.SECCION ? `<br>Sección: ${reg.SECCION}` : '')+
+          (reg.DISTRITO_L ? ` · DL: ${reg.DISTRITO_L}` : '')+
+          (reg.DISTRITO_F ? ` · DF: ${reg.DISTRITO_F}` : '')+
+          `<br><small>${new Date(reg.ts||Date.now()).toLocaleString()}</small>`
+        );
+    }
+
+    // === Carga inicial de lo que haya en localStorage ===
+    function restoreCapturas(){
+      registrosLayer.clearLayers();
+      getCapturas().forEach(drawRegistro);
+      if (!capturasVisibles) map.removeLayer(registrosLayer);
+      updateCapturasCount();
+    }
+
+    // === Contador y label del botón ===
+    function updateCapturasCount(){
+      const n = getCapturas().length;
+      const btn = document.getElementById('btn-toggle-capturas');
+      if (btn) btn.textContent = `${capturasVisibles ? '🙈 Ocultar' : '👁️ Ver'} capturas (${n})`;
+    }
+
+    // === Toggle ver/ocultar ===
+    function toggleCapturas(){
+      capturasVisibles = !capturasVisibles;
+      if (capturasVisibles) { map.addLayer(registrosLayer); }
+      else { map.removeLayer(registrosLayer); }
+      updateCapturasCount();
+    }
+
+    // === Descargar archivo helper ===
+    function downloadFile(filename, mime, content){
+      const blob = new Blob([content], {type: mime});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; document.body.appendChild(a);
+      a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
+
+    // === Export GeoJSON ===
+    function exportGeoJSON(){
+      const feats = getCapturas().map(reg => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [Number(reg.lng), Number(reg.lat)] },
+        properties: {
+          ts: reg.ts,
+          nombre: reg.nombre, paterno: reg.paterno, materno: reg.materno,
+          telefono: reg.telefono,
+          calle: reg.calle, numero: reg.numero,
+          zona: reg.zona, cobertura: reg.cobertura,
+          tipo: reg.tipo, prioridad: reg.prioridad, influencia: reg.influencia,
+          observaciones: reg.observaciones,
+          SECCION: reg.SECCION || null,
+          DISTRITO_L: reg.DISTRITO_L || null,
+          DISTRITO_F: reg.DISTRITO_F || null
+        }
+      }));
+      const fc = { type: 'FeatureCollection', features: feats };
+      const name = `capturas_${new Date().toISOString().slice(0,10)}.geojson`;
+      downloadFile(name, 'application/geo+json', JSON.stringify(fc, null, 2));
+    }
+
+    // === Export CSV ===
+    function exportCSV(){
+      const arr = getCapturas();
+      const headers = [
+        'ts','nombre','paterno','materno','telefono',
+        'calle','numero','zona','cobertura',
+        'tipo','prioridad','influencia','observaciones',
+        'SECCION','DISTRITO_L','DISTRITO_F','lat','lng'
+      ];
+      const esc = v => {
+        const s = (v===undefined||v===null) ? '' : String(v);
+        return `"${s.replace(/"/g,'""')}"`;
+      };
+      const rows = [
+        headers.join(','),
+        ...arr.map(r => headers.map(h => esc(r[h])).join(','))
+      ].join('\r\n');
+
+      const name = `capturas_${new Date().toISOString().slice(0,10)}.csv`;
+      downloadFile(name, 'text/csv;charset=utf-8', rows);
+    }
+
+    // === Limpiar ===
+    function clearCapturas(){
+      const n = getCapturas().length;
+      if (!n) return alert('No hay capturas.');
+      if (!confirm(`Se eliminarán ${n} capturas de este dispositivo. ¿Continuar?`)) return;
+      localStorage.removeItem(KEY_CAPTURAS);
+      registrosLayer.clearLayers();
+      updateCapturasCount();
+    }
+
+    // === Listeners ===
+    document.getElementById('btn-toggle-capturas')?.addEventListener('click', toggleCapturas);
+    document.getElementById('btn-exp-geojson')?.addEventListener('click', exportGeoJSON);
+    document.getElementById('btn-exp-csv')?.addEventListener('click', exportCSV);
+    document.getElementById('btn-clear-capturas')?.addEventListener('click', clearCapturas);
+
+    // === Llamada inicial ===
+    restoreCapturas();
+</script>
+
+
+
+</body>
+</html>

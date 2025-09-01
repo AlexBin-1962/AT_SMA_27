@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+  
+<meta charset="UTF-8">
+
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>APP Estratégico 2027 - GANAR TODO</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f0f0f0;
+  }
+  /* Barra de herramientas */
+  #toolbar {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(255,255,255,0.9);
+    padding: 6px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+  }
+  #toolbar button {
+    font-size: 1.4rem;
+    padding: 6px;
+    border: none;
+    background: none;
+    cursor: pointer;
+  }
+  #toolbar button:hover {
+    background: #e6e6e6;
+    border-radius: 4px;
+  }
+
+  /* Ventana flotante */
+  #gt-window {
+    position: absolute;
+      top: 100px;
+      left: 100px;
+      width: 500px;
+      min-width: 300px;
+      min-height: 200px;
+      background-color: #f4f6f8; /* Fondo gris claro */
+      border: 2px solid #003366; /* Azul institucional */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      color: #222;
+      font-family: Arial, sans-serif;
+      resize: both; /* Permite redimensionar */
+      overflow: auto;
+      z-index: 9999;
+      transition: top 0.15s ease, left 0.15s ease, width 0.15s ease, height 0.15s ease;
+      resize: both;
+    }
+  .gt-hidden { display: none; }
+
+
+  .gt-header {
+    background-color: #efafd4;
+    color: white;
+    padding: 8px 12px;
+    cursor: move; /* Indica que se puede arrastrar */
+    font-weight: bold;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .gt-body { padding: 12px; }
+  .gt-filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .6rem .8rem;
+  }
+  .gt-filters label { font-weight: 600; font-size: .9rem; }
+  .gt-filters select, .gt-filters button {
+    width: 100%;
+    padding: .35rem .5rem;
+  }
+  #gt-run {
+    grid-column: 1 / -1;
+    background: #efafd4;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  #gt-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: .6rem;
+  }
+  #gt-table th, #gt-table td {
+    border-bottom: 1px solid #eee;
+    padding: .35rem .4rem;
+    text-align: left;
+  }
+  
+    #map {
+      height: 100vh; /* Ocupa toda la pantalla */
+      margin: 0;
+    }
+  </style>
+</style>
+</head>
+<body>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- Barra de herramientas -->
+<div id="toolbar">
+  <button id="btn-ganar-todo" title="¿Qué se requiere para GANAR TODO?">🏆</button>
+</div>
+
+<!-- Ventana flotante GANAR TODO -->
+  <div id="gt-window" class="gt-hidden">
+  <div class="gt-header">
+    <span>¿Qué se requiere para GANAR TODO?</span>
+    <button id="gt-close">✕</button>
+  </div>
+
+  <div class="gt-body">
+    <div class="gt-filters">
+      <label>Puesto</label>
+      <select id="gt-puesto">
+        <option>ALCALDE</option>
+        <option>DIPUTADO LOCAL</option>
+        <option>DIPUTADO FEDERAL</option>
+        <option>GOBERNADOR</option>
+        <option>SENADOR</option>
+        <option>PRESIDENTE</option>
+      </select>
+
+      <label>Ámbito</label>
+      <select id="gt-ambito">
+        <option value="municipio">Ayuntamiento</option>
+        <option value="distritoLocal">Distrito Local</option>
+        <option value="distritoFederal">Distrito Federal</option>
+      </select>
+
+      <label>Partido</label>
+      <select id="gt-partido">
+        <option>PAN</option>
+        <option>PRI</option>
+        <option>PVEM</option>
+        <option>MORENA</option>
+      </select>
+
+      <label>RNV</label>
+      <select id="gt-rnv">
+        <option value="base">Base</option>
+        <option value="alta">Alta</option>
+        <option value="baja">Baja</option>
+      </select>
+
+      <label>Distrito/Ayuntamiento</label>
+      <select id="gt-scope"></select>
+
+      <button id="gt-run">Ejecutar consulta</button>
+    </div>
+
+    <div class="gt-results">
+      <table id="gt-table">
+        <thead>
+          <tr>
+            <th>Sección</th>
+            <th>Partido ganador</th>
+            <th>Votos</th>
+            <th>Faltan</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  
+    let map, capaSecciones, ultimaCapaResaltada = null;
+    let datosElectorales = {}; 
+    let grafico = null;
+    let capasPorSeccion = {}; // Declaración global ANTES de usarla
+
+    const coloresPartido = {
+      PAN: '#1976D2', PRI: '#C62828', PVEM: '#2E7D32', MORENA: '#6A1B1A'
+    };
+
+  
+document.addEventListener('DOMContentLoaded', () => {
+ var map = L.map('map').setView([20.86492084469482, -100.72329019456481], 19);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  
+
+  // Variables globales
+let datosElectorales = [];
+let capasPorSeccion = {};
+let capaSecciones;
+
+// 1️⃣ Cargar datos electorales
+fetch('/data/electoral/Datos_Electoral.json')
+  .then(res => res.json())
+  .then(data => {
+    datosElectorales = data;
+    console.log('Datos electorales cargados:', datosElectorales.length);
+    console.log('Ejemplo de registro:', datosElectorales[0]);
+
+    // 2️⃣ Cargar GeoJSON después de tener datos electorales
+    return fetch('/data/geo/AT_SME_27.geojson')
+  })
+  .then(res => res.json())
+  .then(geojson => {
+    capaSecciones = L.geoJSON(geojson, {
+      style: {
+        color: '#555',
+        weight: 1,
+        fillOpacity: 0.3
+      },
+      onEachFeature: (feature, layer) => {
+        const seccion = feature.properties.SECCION;
+        capasPorSeccion[seccion] = layer;
+      }
+    }).addTo(map);
+
+    // 3️⃣ Listener del botón para ejecutar GANAR TODO
+    document.getElementById('gt-run').addEventListener('click', () => {
+      console.log('Ejecutando GANAR TODO...');
+
+      // Ejemplo: filtrar secciones con condición (ajusta según tu lógica)
+      const seccionesFiltradas = datosElectorales
+        .filter(reg => reg.GANAR_TODO === true) // <-- Ajusta la condición
+        .map(reg => reg.SECCION);
+
+      console.log('Secciones filtradas:', seccionesFiltradas);
+
+      // Pintar en el mapa
+      seccionesFiltradas.forEach(seccion => {
+        if (capasPorSeccion[seccion]) {
+          capasPorSeccion[seccion].setStyle({
+            color: '#ff0000',
+            weight: 2,
+            fillOpacity: 0.6
+          });
+        }
+      });
+
+      // Llenar tabla
+      const tbody = document.querySelector('#gt-table tbody');
+      tbody.innerHTML = ''; // limpiar
+      seccionesFiltradas.forEach(seccion => {
+        const reg = datosElectorales.find(r => r.SECCION === seccion);
+        if (reg) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${reg.SECCION}</td>
+            <td>${reg.MUNICIPIO}</td>
+            <td>${reg.GANAR_TODO}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+    });
+  })
+  .catch(err => console.error('Error cargando datos o geojson:', err));
+
+});
+
+const btnGanarTodo = document.getElementById('btn-ganar-todo');
+const winGanarTodo = document.getElementById('gt-window');
+const closeGanarTodo = document.getElementById('gt-close');
+
+btnGanarTodo.addEventListener('click', () => {
+  winGanarTodo.classList.toggle('gt-hidden');
+});
+
+closeGanarTodo.addEventListener('click', () => {
+  winGanarTodo.classList.add('gt-hidden');
+});
+
+// Hacer la ventana movible
+(function makeDraggable(el, handle) {
+  let offX = 0, offY = 0, dragging = false;
+  handle.addEventListener('mousedown', (e) => {
+    dragging = true;
+    offX = e.clientX - el.offsetLeft;
+    offY = e.clientY - el.offsetTop;
+    document.body.style.userSelect = 'none';
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    el.style.left = (e.clientX - offX) + 'px';
+    el.style.top = (e.clientY - offY) + 'px';
+  });
+  window.addEventListener('mouseup', () => {
+    dragging = false;
+    document.body.style.userSelect = '';
+  });
+})(winGanarTodo, winGanarTodo.querySelector('.gt-header'));
+</script>
+
+</body>
+</html>

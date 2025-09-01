@@ -1,0 +1,2261 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>APP Estratégica 2027</title>
+<link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont/tabler-icons.min.css" rel="stylesheet"/>
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet"/>
+<style>
+
+  #panel-consultas {
+  position: fixed;
+  top: 60px;
+  right: 0;
+  width: 320px;
+  height: calc(100% - 60px);
+  background-color: #ffffff;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+  padding: 15px;
+  display: none;
+  z-index: 1002;
+  overflow-y: auto;
+  border-left: 4px solid #1565c0;
+  pointer-events: auto;
+}
+
+.participacion-label {
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 2px 5px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Espaciado uniforme entre todos los elementos del panel de consultas */
+    #panel-consultas .boton-consulta,
+    #panel-consultas .select-consulta {
+      margin-top: 2px;
+      margin-bottom: 2px;
+    }
+    #panel-consultas button.boton-consulta {
+      padding: 4px 10px;         /* Reduce altura vertical */
+      font-size: 13px;           /* Tamaño de texto un poco más compacto */
+      margin-top: 2px;
+      margin-bottom: 2px;
+      height: auto;              /* Asegura que no esté forzado a altura fija */
+      line-height: 1.2;          /* Reduce el espaciado interno */
+    }
+    #panel-consultas select.select-consulta {
+      padding: 4px 10px;
+      font-size: 13px;
+      margin-top: 2px;
+      margin-bottom: 2px;
+      height: auto;
+    }
+
+    .bloque-consulta {
+      border: 2px solid #cce0ff;
+      border-radius: 12px;
+      padding: 4px;
+      margin-top: 2px;
+      margin-bottom: 2px;
+      background-color: #f9fbff;
+      box-shadow: 0 2px 6px rgba(0, 51, 102, 0.1);
+    }
+
+    
+.etiqueta-seccion {
+              font-size: 12px;
+              font-weight: bold;
+              color: #003366;
+              background: white;
+              border: 1px solid #ccc;
+              padding: 2px 4px;
+              border-radius: 4px;
+              text-align: center;
+            }
+
+    
+    body, html { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    #map { height: 100vh; }
+
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: #dcdcdc;
+      color: white;
+      padding: 10px 20px;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    #sidebar {
+      position: fixed;
+      right: 0;
+      top: 60px;
+      width: 360px;
+      height: calc(100% - 60px);
+      background: #f9f9f9;
+      border-left: 1px solid #ddd;
+      box-shadow: -2px 0 4px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      padding: 20px;
+      display: none;
+      z-index: 998;
+    }
+    #sidebar.active { display: block; }
+
+    .badge {
+      display: inline-block;
+      background: #003366;
+      color: white;
+      border-radius: 4px;
+      padding: 4px 8px;
+      margin-right: 6px;
+      font-size: 13px;
+    }
+
+    #info-seccion .badge {
+      margin-bottom: 6px;
+      margin-right: 8px;
+      display: inline-block;
+    }
+
+
+    .tab {
+      display: none;
+    }
+    .tab.active {
+      display: block;
+    }
+    .tab-buttons button {
+      margin-right: 5px;
+      background: #ccc;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .tab-buttons button.active {
+      background: #003366;
+      color: white;
+    }
+
+    #busqueda {
+      position: fixed;
+      top: 70px;
+      left: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 6px;
+      z-index: 1000;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    #busqueda input {
+      width: 100px;
+      padding: 4px;
+      margin-right: 4px;
+    }
+
+    #busqueda button {
+      padding: 4px 10px;
+    }
+  
+    .tab-buttons button:hover {
+      background-color: #005bac;
+      color: white;
+      transition: 0.3s ease-in-out;
+    }
+    #sidebar {
+      transition: all 0.3s ease-in-out;
+    }
+    #sidebar.active {
+      box-shadow: -2px 0 12px rgba(0, 0, 0, 0.2);
+    }
+    .tab-buttons button i {
+      margin-right: 4px;
+    }
+
+    .leaflet-control-zoom {
+      top: 150px !important; /* o ajusta a 100px si lo quieres más abajo */
+    }
+    
+    
+#btn-consultas {
+  position: fixed;
+  bottom: 100px;
+  left: 10px;
+  z-index: 1001;
+  padding: 6px 10px;
+  background-color: #004080;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+#filtro-panel {
+  position: fixed;
+  bottom: 20px;
+  left: 10px;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 10px 12px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  z-index: 1001;
+  font-size: 13px;
+}
+#filtro-panel label {
+  display: block;
+  margin-bottom: 4px;
+}
+#filtro-panel button {
+  margin-right: 4px;
+  font-size: 12px;
+}
+    
+
+
+/* 📱 Responsive para pantallas pequeñas */
+@media (max-width: 768px) {
+  #toolbar {
+    position: fixed;
+    top: auto;
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    background-color: rgba(41, 128, 185, 0.95);
+    border-radius: 10px;
+    padding: 10px;
+  }
+
+  .toolbar-btn {
+    width: 100%;
+    font-size: 16px;
+  }
+}
+#toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background-color: #e3f2fd; /* azul claro */
+  padding: 4px 8px;
+  gap: 4px; /* Espacio entre botones reducido */
+  border-radius: 6px;
+  position: absolute;
+  top: 5px;
+  right: 80px; /* Ajustado para el logo */
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-btn {
+  background-color: white;
+  color: #1565c0; /* Azul fuerte para contorno/texto */
+  border: 1px solid #1565c0;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.toolbar-btn:hover {
+  background-color: #bbdefb; /* azul tenue */
+}
+.label-tooltip {
+  background: rgba(255, 255, 255, 0.9);
+  color: #000;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 11px;
+  border: 1px solid #ccc;
+}
+
+ .boton-consulta {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: white;
+  color: #1565c0;
+  border: 1px solid #1565c0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.boton-consulta:hover {
+  background-color: #1565c0;
+  color: white;
+}
+
+.boton-consulta i {
+  
+  font-size: 16px;
+}
+
+.select-consulta {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #1565c0;
+  border-radius: 6px;
+  background-color: white;
+  color: #1565c0;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.select-consulta:hover {
+  background-color: #e3f2fd;
+}
+
+.select-consulta:focus {
+  outline: none;
+  border-color: #0d47a1;
+}
+
+.leyenda-flotante {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 9999; /* Aumentado */
+}
+.leyenda-flotante div {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  }
+  .leyenda-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  margin-right: 8px;
+  }
+
+  .consulta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f4f4f4;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin: 5px 0;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: 1px solid #ccc;
+  }
+
+  .consulta-item:hover {
+    background-color: #e0e0e0;
+  }
+
+  .consulta-item i {
+    font-size: 1.2em;
+    color: #1565c0;
+  }
+    .consulta-item:active {
+    transform: scale(0.97);
+    background-color: #d6e4f0;
+    transition: transform 0.1s ease, background-color 0.1s ease;
+  }
+  .consulta-item {
+    box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+  }
+</style>
+<style>
+    .tooltip-container {
+      position: relative;
+    }
+
+    .tooltip-trigger {
+      position: relative;
+    }
+
+    .tooltip-text {
+      visibility: hidden;
+      width: 260px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 6px 10px;
+      position: absolute;
+      z-index: 3000;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    .tooltip-trigger:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .bloque-consulta {
+      border: 2px solid #cce0ff;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 16px;
+      background-color: #f9fbff;
+      box-shadow: 0 2px 6px rgba(0, 51, 102, 0.1);
+    }
+
+    .titulo-consulta {
+      font-weight: bold;
+      color: #003366;
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+
+  </style>
+<header>
+<h1><i class="ti ti-chart-pie"></i> Análisis Estratégico 2027</h1>
+<img alt="Logo" src="https://raw.githubusercontent.com/AlexBin-1962/AT_Leon_27/main/logo.png" style="height: 30px;"/>
+<div id="toolbar">
+
+<button class="toolbar-btn" onclick="reiniciarMapa()" title="Reiniciar el mapa">🔁</button>
+<button class="toolbar-btn" cursor:pointer;"="" onclick="mostrarPanelConsultas()" title="Consultas">🔍</button>
+ 
+<button class="leaflet-bar boton-barra" id="btn-comparativa-proyeccion-2027" title="Comparativa Proyección 2027"
+        onclick="document.getElementById('panel-comparativa-proyeccion-2027').style.display = 'block';">
+  <i class="fas fa-chart-area"></i>
+</button>
+
+<button class="leaflet-bar boton-barra" id="btn-cruce-puestos-anios" title="Cruce de Puestos entre Años"
+  onclick="document.getElementById('panel-cruce-puestos-anios').style.display = 'block';">
+  <i class="fas fa-random"></i>
+</button>
+
+<button class="leaflet-bar boton-barra" id="btn-comparativa-ciclo-sexenal" title="Comparativa por Ciclo Sexenal"
+        onclick="document.getElementById('panel-comparativa-ciclo-sexenal').style.display = 'block';">
+  <i class="fas fa-ruler-combined"></i>
+</button>
+
+<button class="leaflet-bar boton-barra" id="btn-comparativa-historica-partido" title="Comparativa Histórica por Partido"
+  onclick="document.getElementById('panel-comparativa-historica-partido').style.display = 'block';">
+  <i class="fas fa-layer-group"></i>
+</button>
+<button class="toolbar-btn" onclick="mostrarPanelComparativaPuesto()" title="Comparar puestos en un mismo año">⚖️</button>
+<button class="leaflet-bar boton-barra" id="btn-comparativa-historica" onclick="document.getElementById('panel-comparativa-historica').style.display = 'block';" title="Consulta Histórica por Puesto">
+<i class="fas fa-chart-line"></i>
+</button>
+<button class="toolbar-btn" onclick="mostrarEtiquetasSecciones()" title="Mostrar Etiquetas">🗺️ </button>
+<button class="toolbar-btn" onclick="ocultarEtiquetas()" title="Ocultar Etiquetas">🚫 </button>
+</div>
+</header>
+<div id="map"></div>
+<div id="busqueda">
+<input id="input-seccion" placeholder="Sección..." type="text"/>
+<button onclick="buscarSeccion()">Buscar</button>
+</div>
+<div id="sidebar">
+<h2 id="titulo-seccion">Sección 0000</h2>
+<div id="info-seccion"></div>
+<div class="tab-buttons">
+<button class="active" onclick="mostrarTab('historial')"><i class="ti ti-history"></i>Historial</button>
+<button onclick="mostrarTab('competencia')"><i class="ti ti-target"></i>Competencia</button>
+<button onclick="mostrarTab('ganador')"><i class="ti ti-trophy"></i>Ganador</button>
+<br/><br/>
+<button onclick="mostrarTab('proyeccion')" style="margin-top: 5px;">
+<i class="ti ti-chart-bar"></i> Proyección
+</button>
+</div><div id="explicacion-grafica" style="margin-top: 15px; font-size: 14px; color: #333;"></div>
+<div class="tab active" id="historial">
+<canvas height="200" id="grafico-historial" width="300"></canvas>
+</div>
+<div class="tab" id="competencia">
+<canvas height="200" id="grafico-competencia" width="300"></canvas>
+</div>
+<div class="tab" id="ganador">
+<canvas height="200" id="grafico-ganador" width="300"></canvas>
+</div>
+<div class="tab" id="proyeccion">
+<canvas height="200" id="grafico-proyeccion" width="300"></canvas>
+</div>
+<button class="btn btn-danger" onclick="cerrarSidebar()" style="margin: 10px;">Salir</button>
+</div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+       let chartComparativaHistoricaPartido = null;
+    let currentFeatureId = null;
+    const map = L.map('map').setView([20.812354801835504, -101.11033994075989], 8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    const coloresFortaleza = {
+      mayor50: "#1e88e5",       // Azul claro
+      mayor1000: "#43a047",     // Verde
+      dobleSegundo: "#f4511e",  // Naranja
+    };
+
+
+    let capasPorSeccion = {};
+    let ultimaCapaResaltada = null;
+    let etiquetasMostradas = false;
+    let etiquetasSeccion = [];
+    let capaFiltroPartido = null;
+
+    fetch('AT_Guanajuato.geojson')
+      .then(res => res.json())
+      .then(data => {
+        geojsonLayer = L.geoJSON(data, {
+          onEachFeature: function(feature, layer) {
+            const props = feature.properties;
+            capasPorSeccion[props.SECCION] = { layer, props };
+            layer.on('click', function () {
+              const centro = layer.getBounds().getCenter();
+              mostrarSeccion(props, centro);
+            });
+          }
+        }).addTo(map);
+      });
+
+function mostrarSeccion(props, centro) {
+  document.getElementById('titulo-seccion').innerText = `Sección ${props.SECCION}`;
+  document.getElementById('info-seccion').innerHTML = `
+    <span class='badge'>DF ${props.DISTRITO_F}</span>
+    <span class='badge'>DL ${props.DISTRITO_L}</span>
+    <span class='badge'>LN ${props.LN_27}</span>`;
+
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.add('active');
+  sidebar.style.display = 'block';  // ← este es el ajuste clave
+
+  if (ultimaCapaResaltada) {
+    ultimaCapaResaltada.setStyle({ color: '#3388ff', weight: 1 });
+  }
+
+  const capa = capasPorSeccion[props.SECCION].layer;
+  capa.setStyle({ color: '#ff0000', weight: 3 });
+  ultimaCapaResaltada = capa;
+
+  map.fitBounds(capa.getBounds(), { maxZoom: 17 });
+
+  actualizarGraficas(props);
+}
+
+    function buscarSeccion() {
+      const id = document.getElementById('input-seccion').value;
+      currentFeatureId = id
+      if (!id || !capasPorSeccion[id]) {
+        alert('Sección no encontrada');
+        return;
+      }
+      const { layer, props } = capasPorSeccion[id];
+      const centro = layer.getBounds().getCenter();
+      mostrarSeccion(props, centro);
+        if (!etiquetasMostradas) {
+          Object.values(capasPorSeccion).forEach(({ layer, props }) => {
+            const centro = layer.getBounds().getCenter();
+            const etiqueta = L.marker(centro, {
+              icon: L.divIcon({
+                className: 'etiqueta-seccion',
+                html: `<div>${props.SECCION}</div>`,
+                iconSize: [40, 20],
+                className: 'etiqueta-seccion'
+              })
+            }).addTo(map);
+            etiquetasSeccion.push(etiqueta);
+          });
+          etiquetasMostradas = true;
+        }
+
+    }
+
+  function mostrarTab(tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-buttons button').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('tab');
+  document.getElementById(tabId).classList.add('active');
+  event.target.classList.add('active');
+
+  // Mostrar texto explicativo según la pestaña activa
+  const explicacion = {
+    historial: '📊 Esta gráfica muestra la evolución de los votos por partido entre las elecciones 2018, 2021 y 2024.',
+    proyeccion: '📈 Esta gráfica estima el número de votos proyectados por partido para la elección de 2027.',
+    competencia: '🥇 Este gráfico circular refleja la proporción de fuerza electoral esperada entre partidos.',
+    ganador: '🏆 Muestra el partido que ganó en cada elección pasada por color dominante en la barra.'
+  };
+  document.getElementById('explicacion-grafica').innerText = explicacion[tabId] || '';
+}
+
+
+    let chartHist, chartProy, chartComp, chartGanador;
+
+    function actualizarGraficas(props) {
+      const partidos = ['PAN', 'PRI', 'PVEM', 'MORENA'];
+
+      if (chartHist) chartHist.destroy();
+      if (chartProy) chartProy.destroy();
+      if (chartComp) chartComp.destroy();
+      if (chartGanador) chartGanador.destroy();
+
+      chartHist = new Chart(document.getElementById('grafico-historial'), {
+        type: 'line',
+        data: {
+          labels: ['2018', '2021', '2024'],
+          datasets: [
+            { label: 'PAN', data: [props['18A_PAN'], props['21A_PAN'], props['24A_PAN']], borderColor: '#005DAA', fill: false },
+            { label: 'PRI', data: [props['18A_PRI'], props['21A_PRI'], props['24A_PRI']], borderColor: '#c1121f', fill: false },
+            { label: 'PVEM', data: [props['18A_PVEM'], props['21A_PVEM'], props['24A_PVEM']], borderColor: '#228B22', fill: false },
+            { label: 'MORENA', data: [props['18A_MORENA'], props['21A_MORENA'], props['24A_MORENA']], borderColor: '#800000', fill: false }
+          ]
+        },
+        options: { responsive: false, plugins: { legend: { position: 'top' } } }
+      });
+
+      chartProy = new Chart(document.getElementById('grafico-proyeccion'), {
+        type: 'bar',
+        data: {
+          labels: partidos,
+          datasets: [{
+            label: `Proyección 2027`,
+            data: [props.PROY_VOTOS_PAN_27A, props.PROY_VOTOS_PRI_27A, props.PROY_VOTOS_PVEM_27A, props.PROY_VOTOS_MORENA_27A],
+            backgroundColor: ['#005bac', '#c1121f', '#228b22', '#800000']
+          }]
+        },
+        options: { responsive: false }
+      });
+
+      chartComp = new Chart(document.getElementById('grafico-competencia'), {
+        type: 'pie',
+        data: {
+          labels: partidos,
+          datasets: [{
+            data: [props.PROY_VOTOS_PAN_27A, props.PROY_VOTOS_PRI_27A, props.PROY_VOTOS_PVEM_27A, props.PROY_VOTOS_MORENA_27A],
+            backgroundColor: ['#005bac', '#c1121f', '#228b22', '#800000']
+          }]
+        },
+        options: { responsive: false }
+      });
+
+      const ganadores = [
+        { año: '2018', partido: props.GANADOR_18A || 'N/D' },
+        { año: '2021', partido: props.GANADOR_21A || 'N/D' },
+        { año: '2024', partido: props.GANADOR_24A || 'N/D' }
+      ];
+      const votosFicticios = [1, 1, 1];
+      const colores = {
+        PAN: '#005DAA', PRI: '#c1121f', PVEM: '#228B22', MORENA: '#800000', 'N/D': '#999'
+      };
+
+      chartGanador = new Chart(document.getElementById('grafico-ganador'), {
+        type: 'bar',
+        data: {
+          labels: ganadores.map(g => g.año),
+          datasets: [{
+            label: 'Partido ganador',
+            data: votosFicticios,
+            backgroundColor: ganadores.map(g => colores[g.partido] || '#999')
+          }]
+        },
+        options: {
+          responsive: false,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  return `Ganador: ${ganadores[ctx.dataIndex].partido}`;
+                }
+              }
+            },
+            legend: { display: false }
+          },
+          scales: { y: { display: false } }
+        }
+      });
+    }
+  
+function toggleFiltroPanel() {
+  const panel = document.getElementById('filtro-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+function aplicarFiltroPartido() {
+  const seleccionados = Array.from(document.querySelectorAll('input[name="filtro-partido"]:checked')).map(el => el.value);
+  if (seleccionados.length === 0) {
+    alert("Selecciona al menos un partido.");
+    return;
+  }
+  Object.values(capasPorSeccion).forEach(({ layer, props }) => {
+    const ganador = props.GANADOR_24A || '';
+    if (seleccionados.includes(ganador)) {
+      layer.setStyle({ opacity: 1, fillOpacity: 0.5 });
+    } else {
+      layer.setStyle({ opacity: 0.1, fillOpacity: 0.1 });
+    }
+  });
+}
+function limpiarFiltro() {
+  Object.values(capasPorSeccion).forEach(({ layer }) => {
+    layer.setStyle({ opacity: 1, fillOpacity: 0.5 });
+  });
+  document.querySelectorAll('input[name="filtro-partido"]').forEach(el => el.checked = false);
+}
+</script>
+<div id="filtro-panel" style="display:none;">
+<strong>Filtrar por partido:</strong><br/>
+<label><input name="filtro-partido" type="checkbox" value="PAN"/> PAN</label><br/>
+<label><input name="filtro-partido" type="checkbox" value="PRI"/> PRI</label><br/>
+<label><input name="filtro-partido" type="checkbox" value="PVEM"/> PVEM</label><br/>
+<label><input name="filtro-partido" type="checkbox" value="MORENA"/> MORENA</label><br/>
+<button onclick="aplicarFiltroPartido()">Aplicar</button>
+<button onclick="limpiarFiltro()">Limpiar</button>
+</div>
+<!-- Panel lateral derecho para consultas -->
+<div id="panel-consultas" style="
+  position: none;
+  top: 60px;
+  right: 0;
+  width: 340px;
+  height: calc(100% - 60px);
+  background-color: #ffffff;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+  padding: 15px;
+  z-index: 1002;
+  overflow-y: auto;
+  border-left: 4px solid #003366;
+  pointer-events: auto;
+">
+
+  <div id="panel-consultas-header" style="display: flex; justify-content: space-between; align-items: center; cursor: move;">
+    <h3 style="margin: 0; font-size: 16px; color: #003366;">Consultas disponibles</h3>
+    <button onclick="document.getElementById('panel-consultas').style.display='none'">✖</button>
+  </div>
+  <hr/>
+<!-- Aquí se colocarán botones de consultas más adelante -->
+<button class="boton-consulta" onclick="mostrarGanadores()" title="Consulta qué partido ganó cada sección en 2024"> <i class="ti ti-trophy"></i> Ganadores por Partido - 2024 </button>
+<!-- Botón de consulta -->
+<div class="bloque-consulta">
+<div class="titulo-consulta">Consulta por partido y año</div>
+<button class="boton-consulta tooltip-trigger" onclick="filtrarPartidoAnio()">
+<i class="bi bi-bullseye"></i> Filtrar por partido y año
+        <span class="tooltip-text">Filtra las secciones según partido y año electoral</span>
+</button>
+<div style="display: flex; gap: 8px;">
+<select class="select-consulta" id="select-partido-anio" style="flex: 1;">
+<option value="PAN">PAN</option>
+<option value="PRI">PRI</option>
+<option value="PVEM">PVEM</option>
+<option value="MORENA">MORENA</option>
+</select>
+<select class="select-consulta" id="select-anio-partido" style="flex: 1;">
+<option value="18A">2018</option>
+<option value="21A">2021</option>
+<option value="24A">2024</option>
+</select>
+</div>
+</div>
+<div class="bloque-consulta">
+<div class="titulo-consulta">Participación por elección</div>
+<div style="display: flex; gap: 8px;">
+<div style="display: flex; gap: 8px;">
+<select class="select-consulta" id="select-anio-participacion" style="width: 55%;">
+<option disabled="" selected="" value="">Selecciona un año</option>
+<option value="18A">2018</option>
+<option value="21A">2021</option>
+<option value="24A">2024</option>
+</select>
+<button class="boton-consulta tooltip-trigger" onclick="mostrarParticipacionPorEleccion()" style="width: 45%;" title="Mostrar participación por elección">
+<i class="fas fa-users"></i> Ejecutar
+        <span class="tooltip-text">Visualiza la participación ciudadana por año</span>
+</button>
+</div>
+</div>
+<div style="border: 1px solid #ccc; padding: 10px; border-radius: 8px; margin-top: 12px;">
+<div style="font-weight: bold; margin-bottom: 8px;">Fortaleza por Partido</div>
+<div style="display: flex; gap: 8px;">
+<select class="select-consulta" id="select-partido-fortaleza" style="flex: 1;">
+<option value="PAN">PAN</option>
+<option value="PRI">PRI</option>
+<option value="PVEM">PVEM</option>
+<option value="MORENA">MORENA</option>
+</select>
+</div>
+<button class="boton-consulta tooltip-trigger" onclick="filtrarFortalezaPartido()">
+<i class="ti ti-shield-star"></i> Filtrar Fortaleza
+          <span class="tooltip-text">Muestra secciones donde un partido tiene mayor fortaleza</span>
+</button>
+</div>
+<button class="boton-consulta" onclick="compararParticipacion()" title="Compara el cambio de participación entre 2018 y 2024 por sección"> <i class="bi bi-bar-chart"></i> Participación 2018 vs 2024
+  </button>
+<button class="boton-consulta" onclick="mostrarParticipacionPromedio()" title="Consulta la participación promedio por sección (2018-2024)">
+<i class="ti ti-chart-donut"></i> Participación Promedio
+    </button>
+<button class="boton-consulta" onclick="filtrarAlternancia()" title="Secciones donde cambió el partido entre elecciones">
+<i class="ti ti-refresh-dot"></i> Alternancia
+    </button>
+<button class="boton-consulta" onclick="filtrarCrecimiento()">
+<i class="ti ti-trending-up"></i> Crecimiento Electoral
+    </button>
+</div>
+<button class="boton-consulta tooltip-trigger" onclick="filtrarEstabilidadPolitica()">
+<i class="fas fa-balance-scale"></i> Estabilidad política
+      <span class="tooltip-text">Visualiza secciones con cambios o permanencia del partido ganador</span>
+</button>
+</div>
+
+<script>
+  function mostrarPanelConsultas() {
+    document.getElementById('panel-consultas').style.display = 'block';
+  }
+</script>
+<script>
+function mostrarPanelComparativaPuesto() {
+  document.getElementById('panel-comparativa-puesto').style.display = 'block';
+}
+</script>
+<script>
+// Función para resaltar secciones según partido ganador
+function mostrarGanadores() {
+  const colores = {
+    'PAN': '#005bac',
+    'PRI': '#c1121f',
+    'PVEM': '#228b22',
+    'MORENA': '#800000',
+    'N/D': '#999999'
+  };
+
+  geojsonLayer.eachLayer(function(layer) {
+    const props = layer.feature.properties;
+    const ganador24 = props.GANADOR_24A || 'N/D';
+    const color = colores[ganador24] || '#999999';
+
+    layer.setStyle({
+      fillColor: color,
+      fillOpacity: 0.6,
+      color: '#222',
+      weight: 1
+    });
+  });
+  // Eliminar leyenda anterior si existe
+  const leyendaExistente = document.getElementById('leyenda-partidos');
+    if (leyendaExistente) leyendaExistente.remove();
+
+// Crear leyenda flotante
+const leyenda = document.createElement('div');
+  leyenda.id = 'leyenda-partidos';
+  leyenda.className = 'leyenda-flotante';
+  leyenda.innerHTML = `
+    <div><span class="leyenda-color" style="background-color: #005bac;"></span> PAN</div>
+    <div><span class="leyenda-color" style="background-color: #c1121f;"></span> PRI</div>
+    <div><span class="leyenda-color" style="background-color: #228b22;"></span> PVEM</div>
+    <div><span class="leyenda-color" style="background-color: #800000;"></span> MORENA</div>
+  `;
+  document.body.appendChild(leyenda);
+    alert("Consulta aplicada: Secciones ganadas por partido en 2024.");
+}
+</script>
+<script>
+function mostrarEtiquetasSecciones() {
+  if (etiquetasMostradas) return;
+
+  Object.values(capasPorSeccion).forEach(({ layer, props }) => {
+    const centro = layer.getBounds().getCenter();
+    const etiqueta = L.marker(centro, {
+      icon: L.divIcon({
+        className: 'etiqueta-seccion',
+        html: `<div>${props.SECCION}</div>`,
+        iconSize: [40, 20],
+        className: 'etiqueta-seccion'
+      })
+    }).addTo(map);
+    etiquetasSeccion.push(etiqueta);
+  });
+
+  etiquetasMostradas = true;
+}
+</script>
+<script>
+
+function ocultarEtiquetas() {
+  etiquetasSeccion.forEach(etiqueta => map.removeLayer(etiqueta));
+  etiquetasSeccion = [];
+
+  geojsonLayer.eachLayer(layer => {
+    if (layer._etiqueta) {
+      map.removeLayer(layer._etiqueta);
+      delete layer._etiqueta;
+    }
+    layer.unbindTooltip();
+  });
+
+  etiquetasMostradas = false;
+}
+
+
+function compararParticipacion() {
+  if (!geojsonLayer) return;
+
+  // Limpiar estilos y etiquetas anteriores
+  geojsonLayer.eachLayer(layer => {
+    geojsonLayer.resetStyle(layer);
+  });
+
+  // Eliminar etiquetas anteriores si existen
+  etiquetasSeccion.forEach(label => map.removeLayer(label));
+  etiquetasSeccion = [];
+
+  geojsonLayer.eachLayer(layer => {
+    const props = layer.feature.properties;
+    const part18 = parseFloat(props.PART_18A) || 0;
+    const part24 = parseFloat(props.PART_24A) || 0;
+    const diff = part24 - part18;
+
+    // Estilo por diferencia
+    const color = diff > 0 ? 'green' : (diff < 0 ? 'gold' : 'gray');
+    layer.setStyle({ fillColor: color, fillOpacity: 0.7 });
+
+    // Crear etiqueta
+    const label = L.marker(layer.getBounds().getCenter(), {
+      icon: L.divIcon({
+        className: 'participacion-label',
+        html: `${diff > 0 ? '+' : ''}${diff.toFixed(1)}%`
+      })
+    }).addTo(map);
+    etiquetasSeccion.push(label);
+  });
+    mostrarLeyendaParticipacion();
+}
+// Función para cerrar el panel lateral de gráficas
+function cerrarSidebar() {
+  document.getElementById('sidebar').style.display = 'none';
+}
+  
+
+</script>
+<script>
+function cerrarPanelConsultas() {
+  const panel = document.getElementById('panel-consultas');
+    if (panel) panel.style.display = 'none';
+  const leyendaAlternancia = document.getElementById("leyenda-alternancia");
+    if (leyendaAlternancia) leyendaAlternancia.remove();
+  const leyendaFortaleza = document.getElementById("leyenda-fortaleza");
+    if (leyendaFortaleza) leyendaFortaleza.remove();
+  const leyendaCrecimiento = document.getElementById("leyenda-crecimiento");
+    if (leyendaCrecimiento) leyendaCrecimiento.remove();
+  const leyenda = document.getElementById("leyenda-partidos");
+    if (leyenda) leyenda.remove();
+  const leyendaEstabilidad = document.getElementById("leyenda-estabilidad");
+    if (leyendaEstabilidad) leyendaEstabilidad.remove();
+  const leyendaFiltro = document.getElementById("leyenda-filtro-partido");
+    if (leyendaFiltro) leyendaFiltro.remove();
+  const leyendaParticipacionEleccion = document.getElementById("leyenda-participacion-eleccion");
+    if (leyendaParticipacionEleccion) leyendaParticipacionEleccion.remove();
+
+}
+</script>
+<script>
+function mostrarParticipacionPorEleccion() {
+  const anio = document.getElementById("select-anio-participacion").value;
+  if (!anio) {
+    alert("Por favor selecciona un año");
+    return;
+  }
+
+  const campo = anio + "_VOTOS";
+  const campoLN = "LN_27";
+
+  geojsonLayer.eachLayer(layer => {
+    const props = layer.feature.properties;
+    const votos = props[campo];
+    const ln = props[campoLN];
+
+    if (!votos || !ln) {
+      layer.setStyle({ fillColor: "#ccc", fillOpacity: 0.3, weight: 0.5 });
+      return;
+    }
+
+    const participacion = (votos / ln) * 100;
+
+    let color = "#ccc";
+    if (participacion < 40) color = "#ef5350";
+    else if (participacion < 60) color = "#ffb300";
+    else color = "#43a047";
+
+    layer.setStyle({
+      fillColor: color,
+      fillOpacity: 0.6,
+      color: "#333",
+      weight: 0.5
+    });
+  });
+
+  mostrarLeyendaParticipacion(anio);
+}
+
+  function mostrarLeyendaParticipacion(anio) {
+  const leyendaExistente = document.getElementById("leyenda-participacion");
+  if (leyendaExistente) leyendaExistente.remove();
+
+  const div = document.createElement("div");
+  div.id = "leyenda-participacion";
+  div.className = "leyenda-flotante";
+
+  div.innerHTML = `
+    <div><strong>Participación ${anio}</strong></div>
+    <div><div class="leyenda-color" style="background:#ef5350;"></div> <40%</div>
+    <div><div class="leyenda-color" style="background:#ffb300;"></div> 40–60%</div>
+    <div><div class="leyenda-color" style="background:#43a047;"></div> >60%</div>
+  `;
+
+  document.body.appendChild(div);
+}
+</script>
+<script>
+  
+
+// 🔁 Función para  el estilo y etiquetas del mapa
+function Mapa() {
+  // 1. Restaurar vista inicial
+  map.setView([20.812354801835504, -101.11033994075989], 8); // Nivel estatal
+
+  // 2. Restaurar estilos y eliminar etiquetas tipo _etiqueta
+  if (geojsonLayer) {
+    geojsonLayer.eachLayer(layer => {
+      geojsonLayer.resetStyle(layer);
+      if (layer._etiqueta) {
+        map.removeLayer(layer._etiqueta);
+        delete layer._etiqueta;
+      }
+      layer.unbindTooltip();
+    });
+  }
+
+  // 3. Eliminar etiquetas flotantes
+  etiquetasSeccion.forEach(etiqueta => map.removeLayer(etiqueta));
+  etiquetasSeccion = [];
+
+  // 4. Eliminar capa de filtro por partido si existe
+  if (typeof capaFiltroPartido !== 'undefined' && capaFiltroPartido) {
+    map.removeLayer(capaFiltroPartido);
+    capaFiltroPartido = null;
+  }
+
+  // 5. Ocultar panel lateral de gráficas
+  const sidebar = document.getElementById("sidebar");
+    if (sidebar) {
+    sidebar.classList.remove("active");
+  }
+
+  // 6. Eliminar leyenda flotante si existe
+  const leyenda = document.getElementById("leyenda-participacion");
+    if (leyenda) {
+    leyenda.remove();
+  }
+
+  // 7.- Eliminar leyenda flotante Fortaleza
+  const leyendaFortaleza = document.getElementById("leyenda-fortaleza");
+    if (leyendaFortaleza) leyendaFortaleza.remove();
+
+
+  // 8.- Ocultar leyenda de alternancia si existe
+  const leyendaAlternancia = document.getElementById("leyenda-alternancia");
+    if (leyendaAlternancia) leyendaAlternancia.remove();
+
+  // 9.- Ocultar leyenda de crecimiento Lista Nominalsi existe
+  const leyendaCrecimiento = document.getElementById("leyenda-crecimiento");
+    if (leyendaCrecimiento) leyendaCrecimiento.remove();
+
+  //10.- Ocultar Leyenda Estabilidad Politica
+  const leyendaEstabilidad = document.getElementById("leyenda-estabilidad");
+    if (leyendaEstabilidad) leyendaEstabilidad.remove();
+
+  // 11.- Ocultar Leyenda Ganadores 2024
+  const leyendaExistente = document.getElementById("leyenda-partidos");
+    if (leyendaExistente) leyendaExistente.remove();
+
+  // 12.- ocultar leyenda de filtro ganador por año
+    const leyendaFiltro = document.getElementById("leyenda-filtro-partido");
+      if (leyendaFiltro) leyendaFiltro.remove();
+
+  // 12. Destruir gráficas si están activas
+    if (typeof chartHist !== 'undefined' && chartHist) chartHist.destroy();
+    if (typeof chartProy !== 'undefined' && chartProy) chartProy.destroy();
+    if (typeof chartComp !== 'undefined' && chartComp) chartComp.destroy();
+    if (typeof chartGanador !== 'undefined' && chartGanador) chartGanador.destroy();
+
+  // 13. Ocultar leyenda de participacion de eleccion
+    const leyendaParticipacionEleccion = document.getElementById("leyenda-participacion-eleccion");
+      if (leyendaParticipacionEleccion) leyendaParticipacionEleccion.remove();
+
+  }
+
+  function mostrarParticipacionPromedio() {
+    geojsonLayer.eachLayer(layer => {
+      const props = layer.feature.properties;
+      const p18 = parseFloat(props.PART_18A);
+      const p21 = parseFloat(props.PART_21A);
+      const p24 = parseFloat(props.PART_24A);
+
+      if (!isNaN(p18) && !isNaN(p21) && !isNaN(p24)) {
+        const promedio = ((p18 + p21 + p24) / 3).toFixed(1);
+        let color = "#ffffff"; // default
+
+        if (promedio >= 60) color = "green";
+        else if (promedio < 40) color = "lightcoral";
+        else color = "gold";
+
+        layer.setStyle({
+          fillColor: color,
+          fillOpacity: 0.6,
+          color: "#444"
+        });
+
+        layer.bindTooltip(`${promedio}%`, {
+          permanent: false,
+          direction: "center",
+          className: "label-tooltip"
+        });
+        mostrarLeyendaParticipacion();
+      }
+    });
+  }
+  </script>
+<script>
+    function filtrarAlternancia() {
+  if (capaFiltroPartido) map.removeLayer(capaFiltroPartido);
+
+  capaFiltroPartido = L.geoJSON(geojsonLayer.toGeoJSON(), {
+    style: feature => {
+      const g18 = feature.properties['18A_GANADOR'];
+      const g21 = feature.properties['21A_GANADOR'];
+      const g24 = feature.properties['24A_GANADOR'];
+
+      // Verificamos si el partido se mantuvo constante en las 3 elecciones
+        const sinCambio = g18 === g21 && g21 === g24;
+
+        return {
+          color: '#000000',
+          weight: 1,
+          fillOpacity: 0.6,
+          fillColor: sinCambio ? '#1e88e5' : '#c62828'  // Azul si no hay cambio, rojo si hubo cambio
+        };
+      }
+    }).addTo(map);
+
+    mostrarLeyendaAlternancia();
+  }
+</script>
+<script>
+function mostrarLeyendaAlternancia() {
+  // Si ya existe, elimínala
+  const existente = document.getElementById("leyenda-alternancia");
+  if (existente) existente.remove();
+
+  const div = document.createElement("div");
+  div.id = "leyenda-alternancia";  // ← ✅ Este es el ajuste importante
+  div.className = "leyenda-flotante";
+  div.innerHTML = `
+    <div><strong>Alternancia</strong></div>
+    <div><div class="leyenda-color" style="background:#c62828;"></div> Hubo alternancia</div>
+    <div><div class="leyenda-color" style="background:#1e88e5;"></div> Mismo partido</div
+  `;
+  document.body.appendChild(div);
+}
+</script>
+<script>
+  function mostrarLeyendaFortaleza(partido) {
+  const leyendaExistente = document.getElementById("leyenda-fortaleza");
+  if (leyendaExistente) leyendaExistente.remove();
+
+  const div = document.createElement("div");
+  div.id = "leyenda-fortaleza";
+  div.className = "leyenda-flotante";
+
+  div.innerHTML = `
+    <div><strong>${partido}</strong> - Criterios:</div>
+    <div><div class="leyenda-color" style="background:${coloresFortaleza.mayor50};"></div> >50% votos</div>
+    <div><div class="leyenda-color" style="background:${coloresFortaleza.mayor1000};"></div> >1000 votos</div>
+    <div><div class="leyenda-color" style="background:${coloresFortaleza.dobleSegundo};"></div> Doble que 2.º lugar</div>
+  `;
+
+  document.body.appendChild(div);
+}
+</script>
+<script>
+  function calcularSegundoLugar(props, partidoExcluido) {
+    const partidos = ["PAN", "PRI", "PVEM", "MORENA"];
+    const votos = partidos
+      .filter(p => p !== partidoExcluido)
+      .map(p => props[`24A_${p}`] || 0);
+    return Math.max(...votos);
+  }
+</script>
+<script>
+  function filtrarFortalezaPartido() {
+    const partido = document.getElementById("select-partido-fortaleza").value;
+
+    if (!geojsonLayer) {
+      console.warn("geojsonLayer no cargado");
+      return;
+    }
+
+    geojsonLayer.eachLayer(layer => {
+      const props = layer.feature.properties;
+      const totalVotos = props["24A_VOTOS"];
+      const votosPartido = props[`24A_${partido}`];
+      const segundoLugar = calcularSegundoLugar(props, partido);
+
+      let color = null;
+
+      if (votosPartido > totalVotos * 0.5) {
+        color = coloresFortaleza.mayor50; // azul (>50%)
+      } else if (votosPartido > 1000) {
+        color = coloresFortaleza.mayor1000; // verde
+      } else if (votosPartido > segundoLugar * 2) {
+        color = coloresFortaleza.dobleSegundo; // naranja
+      }
+
+      layer.setStyle({
+        fillColor: color || "#ccc",
+        fillOpacity: color ? 0.7 : 0.2,
+        color: "#333",
+        weight: 1
+      });
+    });
+
+    mostrarLeyendaFortaleza(partido);
+  }
+</script>
+<script>
+    function filtrarEstabilidadPolitica() {
+  if (capaFiltroPartido) map.removeLayer(capaFiltroPartido);
+
+  capaFiltroPartido = L.geoJSON(geojsonLayer.toGeoJSON(), {
+    style: feature => {
+      const g18 = feature.properties['18A_GANADOR'];
+      const g21 = feature.properties['21A_GANADOR'];
+      const g24 = feature.properties['24A_GANADOR'];
+
+      const esEstable = g18 === g21 && g21 === g24;
+      const esInestable = g18 !== g21 && g21 !== g24 && g18 !== g24;
+
+      return {
+        color: '#1565c0',
+        weight: 1,
+        fillOpacity: 0.6,
+        fillColor: esEstable
+          ? '#1565c0'
+          : esInestable
+          ? '#ef6c00'
+          : '#ffffff00',
+      };
+    }
+  }).addTo(map);
+
+  mostrarLeyendaEstabilidad();
+}
+</script>
+<script>
+  function mostrarLeyendaEstabilidad() {
+    const existente = document.getElementById("leyenda-estabilidad");
+    if (existente) existente.remove();
+
+    const div = document.createElement("div");
+    div.id = "leyenda-estabilidad";
+    div.className = "leyenda-flotante";
+
+    div.innerHTML = `
+      <div><strong>Comportamiento político</strong></div>
+      <div><div class="leyenda-color" style="background:#1565c0;"></div> Estable (mismo partido)</div>
+      <div><div class="leyenda-color" style="background:#ef6c00;"></div> Inestable (3 partidos distintos)</div>
+    `;
+
+    document.body.appendChild(div);
+  }
+</script>
+<script>
+      function filtrarCrecimiento() {
+        if (capaFiltroPartido) map.removeLayer(capaFiltroPartido);
+
+        capaFiltroPartido = L.geoJSON(geojsonLayer.toGeoJSON(), {
+          style: feature => {
+            const ln24 = feature.properties['24A_LN'];
+            const ln27 = feature.properties['LN_27'];
+
+            if (!ln24 || ln24 === 0) return { fillOpacity: 0 };
+
+            const crecimiento = ((ln27 - ln24) / ln24) * 100;
+
+            let fillColor = '#e0f7fa'; // Por defecto, color muy claro
+
+            if (crecimiento > 20) {
+              fillColor = '#c62828'; // Rojo
+            } else if (crecimiento > 10) {
+              fillColor = '#f9a825'; // Naranja
+            } else if (crecimiento > 5) {
+              fillColor = '#43a047'; // Verde
+            } else if (crecimiento > 0) {
+              fillColor = '#1e88e5'; // Azul
+            }
+
+            return {
+              color: '#000',
+              weight: 1,
+              fillOpacity: 0.7,
+              fillColor
+            };
+          }
+        }).addTo(map);
+
+        mostrarLeyendaCrecimiento();
+      }
+
+  function mostrarLeyendaCrecimiento() {
+        const existente = document.getElementById("leyenda-crecimiento");
+        if (existente) existente.remove();
+
+        const div = document.createElement("div");
+        div.id = "leyenda-crecimiento";
+        div.className = "leyenda-flotante";
+
+        div.innerHTML = `
+          <div><strong>Crecimiento Lista Nominal</strong></div>
+          <div><div class="leyenda-color" style="background:#1e88e5;"></div> 0–5%</div>
+          <div><div class="leyenda-color" style="background:#43a047;"></div> 5–10%</div>
+          <div><div class="leyenda-color" style="background:#f9a825;"></div> 10–20%</div>
+          <div><div class="leyenda-color" style="background:#c62828;"></div> >20%</div>
+        `;
+
+        document.body.appendChild(div);
+      }
+  </script>
+<script>
+      window.onload = function() {
+        dragElement(document.getElementById("panel-consultas"));
+        dragElement(document.getElementById("panel-comparativa-puesto"));
+        dragElement(document.getElementById("panel-comparativa-historica"));
+        dragElement(document.getElementById("panel-comparativa-proyeccion-2027"), "panel-comparativa-proyeccion-2027-header");
+
+      };
+
+  function dragElement(elmnt) {
+    const header = document.getElementById(elmnt.id + "-header");
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+    if (header) {
+      header.onmousedown = dragMouseDown;
+    } else {
+      elmnt.onmousedown = dragMouseDown;
+    }
+
+    function dragMouseDown(e) {
+      e.preventDefault();
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+      e.preventDefault();
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+      elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
+  }
+  </script>
+<script>
+function filtrarPartidoAnio() {
+  const partido = document.getElementById("select-partido-anio").value;
+const anio = document.getElementById("select-anio-partido").value;
+
+  if (!geojsonLayer) {
+    console.warn("geojsonLayer no cargado");
+    return;
+  }
+
+  geojsonLayer.eachLayer(layer => {
+    const props = layer.feature.properties;
+    const campoGanador = `GANADOR_${anio}`;
+    const ganador = props[campoGanador];
+
+    // Validar que el campo exista y comparar en mayúsculas para evitar errores por formato
+    if (ganador && ganador.toUpperCase() === partido.toUpperCase()) {
+      layer.setStyle({
+        fillColor: "#1565c0",
+        color: "#0d47a1",
+        weight: 2,
+        fillOpacity: 0.7
+      });
+    } else {
+      layer.setStyle({
+        fillColor: "#e0e0e0",
+        color: "#9e9e9e",
+        weight: 1,
+        fillOpacity: 0.3
+      });
+    }
+
+    layer.unbindTooltip();
+  });
+
+  mostrarLeyendaFiltroPartido(partido, anio);
+}
+</script>
+<script>
+    function mostrarLeyendaFiltroPartido(partido, anio) {
+      const leyendaExistente = document.getElementById("leyenda-filtro-partido");
+      if (leyendaExistente) leyendaExistente.remove();
+
+      const leyenda = document.createElement("div");
+      leyenda.id = "leyenda-filtro-partido";
+      leyenda.className = "leyenda-flotante";
+      leyenda.innerHTML = `
+        <div><strong>${partido}</strong></div>
+        <div>Ganador en <strong>${anio.replace('A', '')}</strong></div>`;
+      document.body.appendChild(leyenda);
+    }
+  </script>
+<script>
+  function reiniciarMapa() {
+    map.setView([20.812354801835504, -101.11033994075989], 8);
+
+    if (geojsonLayer) {
+      geojsonLayer.eachLayer(layer => {
+        geojsonLayer.resetStyle(layer);
+        if (layer._etiqueta) {
+          map.removeLayer(layer._etiqueta);
+          delete layer._etiqueta;
+        }
+        layer.unbindTooltip();
+      });
+    }
+
+    etiquetasSeccion.forEach(etiqueta => map.removeLayer(etiqueta));
+    etiquetasSeccion = [];
+    etiquetasMostradas = false;
+
+    if (typeof capaFiltroPartido !== 'undefined' && capaFiltroPartido) {
+      map.removeLayer(capaFiltroPartido);
+      capaFiltroPartido = null;
+    }
+
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar) sidebar.classList.remove("active");
+
+    const panelGraficas = document.getElementById("panel-graficas");
+    if (panelGraficas) panelGraficas.style.display = "none";
+
+    if (typeof chartHist !== 'undefined' && chartHist) chartHist.destroy();
+    if (typeof chartProy !== 'undefined' && chartProy) chartProy.destroy();
+    if (typeof chartComp !== 'undefined' && chartComp) chartComp.destroy();
+    if (typeof chartGanador !== 'undefined' && chartGanador) chartGanador.destroy();
+
+    // Eliminar leyendas flotantes si existen
+    const leyendas = [
+      "leyenda-participacion",
+      "leyenda-alternancia",
+      "leyenda-crecimiento",
+      "leyenda-fortaleza",
+      "leyenda-estabilidad",
+      "leyenda-partido-anio",
+      "leyenda-filtro-partido",
+      "leyenda-participacion-eleccion",
+      "leyenda-partidos"
+    ];
+    leyendas.forEach(id => {
+      const l = document.getElementById(id);
+      if (l) l.remove();
+    });
+  }
+</script>
+<script>
+      function mostrarParticipacionPorEleccion() {
+        const anio = document.getElementById("select-anio-participacion").value;
+        if (!anio || !geojsonLayer) return;
+
+        geojsonLayer.eachLayer(function(layer) {
+          const props = layer.feature.properties;
+          const valor = props[`PART_${anio}`]; // Por ejemplo PART_18A
+          let color = "#ccc";
+
+          if (valor < 40) {
+            color = "#ef5350"; // rojo
+          } else if (valor >= 40 && valor <= 60) {
+            color = "#ffb300"; // naranja
+          } else if (valor > 60) {
+            color = "#43a047"; // verde
+          }
+
+          layer.setStyle({ fillColor: color, fillOpacity: 0.7, color: "#333", weight: 0.5 });
+
+          // Etiqueta informativa
+          const etiqueta = `Participación ${anio.replace("A", "")}: ${valor ? valor.toFixed(1) : "N/D"}%`;
+          layer.bindTooltip(etiqueta, { permanent: false, direction: "top" });
+        });
+
+        mostrarLeyendaParticipacionPorEleccion();
+      }
+    </script>
+<script>
+      function mostrarLeyendaParticipacionPorEleccion() {
+        const leyendaExistente = document.getElementById("leyenda-participacion-eleccion");
+        if (leyendaExistente) leyendaExistente.remove();
+
+        const div = document.createElement("div");
+        div.id = "leyenda-participacion-eleccion";
+        div.className = "leyenda-flotante";
+
+        div.innerHTML = `
+          <div><strong>Participación ciudadana por Eleccion</strong></div>
+          <div><div class="leyenda-color" style="background:#ef5350;"></div> &lt; 40%</div>
+          <div><div class="leyenda-color" style="background:#ffb300;"></div> 40–60%</div>
+          <div><div class="leyenda-color" style="background:#43a047;"></div> &gt; 60%</div>
+        `;
+
+        document.body.appendChild(div);
+      }
+    </script>
+
+      <!-- Panel de Consulta Cruzada de Puestos entre Años -->
+<div id="panel-cruce-puestos-anios" style="
+  position: fixed;
+  top: 60px;
+  right: 0;
+  width: 320px;
+  height: calc(100% - 60px);
+  background-color: #ffffff;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+  padding: 15px;
+  display: none;
+  z-index: 1002;
+  overflow-y: auto;
+  border-left: 4px solid #1565c0;
+  pointer-events: auto;">
+  
+    <div id="panel-cruce-puestos-anios-header" style="display: flex; justify-content: space-between; align-items: center; cursor: move;">
+      <h3 style="margin: 0; font-size: 16px; color: #003366;">Cruce de Puestos entre Años</h3>
+      <button onclick="document.getElementById('panel-cruce-puestos-anios').style.display='none'">✖</button>
+    </div>
+
+  <hr/>
+
+  <label>Partido político:</label>
+  <select id="select-partido-cruce" class="select-consulta">
+    <option value="PAN">PAN</option>
+    <option value="PRI">PRI</option>
+    <option value="PVEM">PVEM</option>
+    <option value="MORENA">MORENA</option>
+  </select>
+
+  <label>Puesto en 2018:</label>
+  <select id="select-puesto-2018-cruce" class="select-consulta">
+    <option value="A">Alcalde</option>
+    <option value="DL">Diputado Local</option>
+    <option value="DF">Diputado Federal</option>
+    <option value="G">Gobernador</option>
+    <option value="S">Senador</option>
+    <option value="P">Presidente</option>
+  </select>
+
+  <label>Puesto en 2024:</label>
+  <select id="select-puesto-2024-cruce" class="select-consulta">
+    <option value="A">Alcalde</option>
+    <option value="DL">Diputado Local</option>
+    <option value="DF">Diputado Federal</option>
+    <option value="G">Gobernador</option>
+    <option value="S">Senador</option>
+    <option value="P">Presidente</option>
+  </select>
+
+  <button onclick="ejecutarCrucePuestosAnios()" class="boton-consulta" style="margin-top: 10px;">
+    <i class="fas fa-random"></i> Ejecutar Cruce
+  </button>
+
+  <div id="resultado-cruce-puestos-anios" style="margin-top: 20px;"></div>
+</div>
+
+  <!-- PANEL: Comparativa Proyección 2027 -->
+          <div id="panel-comparativa-proyeccion-2027" style="
+              position: fixed;
+              top: 60px;
+              right: 0;
+              width: 320px;
+              height: calc(100% - 60px);
+              background-color: #ffffff;
+              box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+              padding: 15px;
+              display: none;
+              z-index: 1002;
+              overflow-y: auto;
+              border-left: 4px solid #388e3c;
+              pointer-events: auto;">
+              
+              <div id="panel-comparativa-proyeccion-2027-header" style="display: flex; justify-content: space-between; align-items: center; cursor: move;">
+                <h3 style="margin: 0; font-size: 16px; color: #1b5e20;">Comparativa Proyección 2027</h3>
+                <button onclick="document.getElementById('panel-comparativa-proyeccion-2027').style.display='none'">✖</button>
+              </div>
+
+              <hr/>
+              <label for="select-partido-proyeccion">Partido político:</label>
+              <select id="select-partido-proyeccion" class="select-consulta">
+                <option value="PAN">PAN</option>
+                <option value="PRI">PRI</option>
+                <option value="PVEM">PVEM</option>
+                <option value="MORENA">MORENA</option>
+              </select>
+
+              <label for="select-puesto-proyeccion">Puesto:</label>
+              <select id="select-puesto-proyeccion" class="select-consulta">
+                <option value="A">Alcalde</option>
+                <option value="DL">Diputado Local</option>
+                <option value="DF">Diputado Federal</option>
+                <option value="G">Gobernador</option>
+                <option value="S">Senador</option>
+                <option value="P">Presidente</option>
+              </select>
+
+              <button onclick="ejecutarComparativaProyeccion2027()" class="boton-consulta" style="margin-top: 10px;">
+                <i class="fas fa-balance-scale"></i> Ejecutar Comparativa
+              </button>
+
+              <div id="resultado-comparativa-proyeccion-2027" style="margin-top: 20px;"></div>
+            </div>
+
+
+        <!-- PANEL: Comparativa por Ciclo Sexenal -->
+      <div id="panel-comparativa-ciclo-sexenal" style="
+        position: fixed;
+        top: 60px;
+        right: 0;
+        width: 320px;
+        height: calc(100% - 60px);
+        background-color: #ffffff;
+        box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+        padding: 15px;
+        display: none;
+        z-index: 1002;
+        overflow-y: auto;
+        border-left: 4px solid #1565c0;
+        pointer-events: auto;">
+        
+        <div id="panel-comparativa-ciclo-sexenal-header" style="display: flex; justify-content: space-between; align-items: center; cursor: move;">
+          <h3 style="margin: 0; font-size: 16px; color: #003366;">Comparativa por Ciclo Sexenal</h3>
+          <button onclick="document.getElementById('panel-comparativa-ciclo-sexenal').style.display='none'">✖</button>
+        </div>
+        <hr/>
+
+        <label>Partido político:</label>
+        <select id="select-partido-sexenal" class="select-consulta">
+          <option value="PAN">PAN</option>
+          <option value="PRI">PRI</option>
+          <option value="PVEM">PVEM</option>
+          <option value="MORENA">MORENA</option>
+        </select>
+
+        <label>Puesto:</label>
+        <select id="select-puesto-sexenal" class="select-consulta">
+          <option value="G">Gobernador</option>
+          <option value="S">Senador</option>
+          <option value="P">Presidente</option>
+        </select>
+
+        <button onclick="ejecutarComparativaCicloSexenal()" class="boton-consulta" style="margin-top: 10px;">
+          <i class="fas fa-balance-scale"></i> Ejecutar Comparativa
+        </button>
+
+        <div id="resultado-comparativa-ciclo-sexenal" style="margin-top: 20px;"></div>
+      </div>
+
+
+<!-- PANEL COMPARATIVA POR PUESTO (MISMO AÑO) -->
+    <div id="panel-comparativa-puesto" style="
+      position: fixed;
+      top: 60px;
+      right: 0;
+      width: 320px;
+      height: calc(100% - 60px);
+      background-color: #ffffff;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+      padding: 15px;
+      display: none;
+      z-index: 1002;
+      overflow-y: auto;
+      border-left: 4px solid #1565c0;
+    ">
+<div id="panel-comparativa-puesto-header" style="display: flex; justify-content: space-between; align-items: center; cursor: move;">
+<h3 style="margin: 0; font-size: 16px; color: #003366;">Comparativa por Puesto</h3>
+<button onclick="document.getElementById('panel-comparativa-puesto').style.display='none'">✖</button>
+</div>
+<hr>
+<label>Año de elección:</label>
+<select class="select-consulta" id="select-anio-comp">
+<option value="2018">2018</option>
+<option value="2021">2021</option>
+<option value="2024">2024</option>
+</select>
+<label>Grupo de puestos:</label>
+<select class="select-consulta" id="select-puestos-comp">
+<option value="locales">Alcalde - Diputado Local - Diputado Federal</option>
+<option value="federales">Gobernador - Senador - Presidente</option>
+</select>
+<button class="boton-consulta" onclick="ejecutarComparativaPuestoAnio()" style="margin-top: 10px;">
+<i class="fas fa-balance-scale"></i> Ejecutar Comparativa
+      </button>
+<div id="resultado-comparativa" style="margin-top: 20px;"></div>
+</hr></div>
+<!-- Panel lateral -->
+<div id="panel-comparativa-historica" style="
+        position: fixed;
+        top: 60px;
+        right: 0;
+        width: 320px;
+        height: calc(100% - 60px);
+        background-color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        padding: 15px;
+        display: none;
+        z-index: 1002;
+        overflow-y: auto;
+        border-left: 4px solid #1565c0;
+        border-radius: 12px;
+        pointer-events: auto;
+      ">
+<div id="panel-comparativa-historica-header" style="display: flex; justify-content: space-between; align-items: center; cursor: move;">
+<h3 style="margin: 0; font-size: 17px; color: #ffffff; background-color:#1565c0; padding: 8px; border-radius: 6px;">
+            🕒 Comparativa Histórica
+          </h3>
+<button onclick="document.getElementById('panel-comparativa-historica').style.display='none'" style="background: none; border: none; font-size: 18px; cursor: pointer;">✖</button>
+</div>
+<fieldset style="margin-top:15px; border: 1px solid #ddd; border-radius: 6px; padding: 10px;">
+<legend style="font-size: 13px; color: #1565c0;">Selecciona el Puesto</legend>
+<label for="select-puesto-historico">Puesto:</label><br/>
+<select class="select-consulta" id="select-puesto-historico" style="margin-bottom: 10px; width: 100%;">
+<option value="A">Alcalde</option>
+<option value="DL">Diputado Local</option>
+<option value="DF">Diputado Federal</option>
+<option value="G">Gobernador</option>
+<option value="S">Senador</option>
+<option value="P">Presidente</option>
+</select>
+<button class="boton-consulta" onclick="ejecutarComparativaHistorica()" style="width: 100%;">
+<i class="fas fa-chart-bar"></i> Ejecutar Comparativa
+          </button>
+</fieldset>
+<div id="resultado-comparativa-historica" style="margin-top: 20px;"></div>
+</div>
+
+  <!-- Panel de Comparativa Histórica por Partido -->
+
+  <div id="panel-comparativa-historica-partido" style="
+  position: fixed;
+  top: 60px;
+  right: 0;
+  width: 320px;
+  height: calc(100% - 60px);
+  background-color: #ffffff;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+  padding: 15px;
+  display: none;
+  z-index: 1002;
+  overflow-y: auto;
+  border-left: 4px solid #1565c0;
+  pointer-events: auto;">
+  <div id="panel-comparativa-historica-partido-header" style="display: flex; justify-content: space-between; align-items: center; cursor: move;">
+    <h3 style="margin: 0; font-size: 16px; color: #003366;">Comparativa Histórica por Partido</h3>
+    <button onclick="document.getElementById('panel-comparativa-historica-partido').style.display='none'">✖</button>
+  </div>
+  <hr/>
+  <label>Partido político:</label>
+  <select id="select-partido-historico" class="select-consulta">
+    <option value="PAN">PAN</option>
+    <option value="PRI">PRI</option>
+    <option value="PVEM">PVEM</option>
+    <option value="MORENA">MORENA</option>
+  </select>
+
+  <label>Puesto a comparar:</label>
+  <select id="select-puesto-historico-partido" class="select-consulta">
+    <option value="A">Alcalde</option>
+    <option value="DL">Diputado Local</option>
+    <option value="DF">Diputado Federal</option>
+    <option value="G">Gobernador</option>
+    <option value="S">Senador</option>
+    <option value="P">Presidente</option>
+  </select>
+
+  <button onclick="ejecutarComparativaHistoricaPartido()" class="boton-consulta" style="margin-top: 10px;">
+    <i class="fas fa-chart-line"></i> Ejecutar Comparativa
+  </button>
+
+  <div id="resultado-comparativa-historica-partido" style="margin-top: 20px;"></div>
+
+      <!-- Al final de todo tu HTML, antes de </html> -->
+<div style="padding: 10px; background: #f0f0f0; margin-top: 20px;">
+  
+ 
+</div>
+
+
+<script>
+  dragElement(
+    document.getElementById("panel-comparativa-historica-partido"),
+    document.getElementById("panel-historica-partido-header")
+  );
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function ejecutarComparativaPuestoAnio() {
+      const anio = document.getElementById("select-anio-comp").value;
+      const grupo = document.getElementById("select-puestos-comp").value;
+      const seccionTitulo = document.getElementById("titulo-seccion").innerText;
+      const seccion = seccionTitulo.replace("Sección ", "").trim();
+
+      if (!seccion || !capasPorSeccion[seccion]) {
+        alert("Selecciona una sección antes de realizar la consulta.");
+        return;
+      }
+
+      const props = capasPorSeccion[seccion].props;
+      const partidos = ["PAN", "PRI", "PVEM", "MORENA"];
+      let puestos = [];
+
+      if (grupo === "locales") {
+        puestos = ["A", "DL", "DF"];
+      } else if (grupo === "federales") {
+        if (anio === "2021") {
+          alert("En 2021 no hay elecciones federales (Presidente, Senador, Gobernador).");
+          return;
+        }
+        puestos = ["G", "S", "P"];
+      }
+
+      let html = '<div style="margin-bottom: 10px;"><strong>Sección:</strong> ' + seccion + '</div>';
+      html += '<table style="width:100%; font-size:13px; border-collapse: collapse;" border="1">';
+      html += '<tr><th>Partido</th>' + puestos.map(p => `<th>${puestoNombre(p)}</th>`).join('') + '</tr>';
+
+      const chartData = {};
+      partidos.forEach(partido => {
+        html += '<tr><td>' + partido + '</td>';
+        puestos.forEach(p => {
+          const campo = anio.slice(2) + p + '_' + partido;
+          const valor = props[campo] !== undefined ? props[campo] : 0;
+          html += `<td>${valor}</td>`;
+          if (!chartData[partido]) chartData[partido] = [];
+          chartData[partido].push(valor);
+        });
+        html += '</tr>';
+      });
+
+      html += '</table><canvas id="graficaComparativa" height="300" style="margin-top:20px;"></canvas>';
+      document.getElementById("resultado-comparativa").innerHTML = html;
+
+      // Crear gráfico
+      const ctx = document.getElementById('graficaComparativa').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: puestos.map(p => puestoNombre(p)),
+          datasets: partidos.map((partido, idx) => ({
+            label: partido,
+            data: chartData[partido],
+            backgroundColor: `hsl(${idx * 90}, 70%, 50%)`
+          }))
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Comparativa por Puesto - ' + anio
+            },
+            legend: {
+              position: 'top'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    function puestoNombre(abrev) {
+      const nombres = {
+        "A": "Alcalde",
+        "DL": "Dip. Local",
+        "DF": "Dip. Federal",
+        "G": "Gobernador",
+        "S": "Senador",
+        "P": "Presidente"
+      };
+      return nombres[abrev] || abrev;
+    }
+    </script>
+
+    <script>
+       function ejecutarCrucePuestosAnios() {
+            const partido = document.getElementById("select-partido-cruce").value;
+            const puesto18 = document.getElementById("select-puesto-2018-cruce").value;
+            const puesto24 = document.getElementById("select-puesto-2024-cruce").value;
+            const resultadoDiv = document.getElementById("resultado-cruce-puestos-anios");
+
+            if (!currentFeatureId || !capasPorSeccion[currentFeatureId]) {
+              resultadoDiv.innerHTML = `<div style="color:red;">Primero seleccione una sección en el mapa.</div>`;
+              return;
+            }
+
+            const props = capasPorSeccion[currentFeatureId].props;
+
+            const campo2018 = `18${puesto18}_${partido}`;
+            const campo2024 = `24${puesto24}_${partido}`;
+
+            const votos2018 = props[campo2018] !== undefined ? props[campo2018] : 0;
+            const votos2024 = props[campo2024] !== undefined ? props[campo2024] : 0;
+
+            resultadoDiv.innerHTML = `
+              <h4>Cruce de Puestos 2018-2024 para <strong>${partido}</strong> (Sección ${currentFeatureId})</h4>
+              <table border="1" style="width:100%; border-collapse: collapse; text-align:center;">
+                <tr style="background:#e0e0e0;">
+                  <th>Año</th><th>Puesto</th><th>Votos</th>
+                </tr>
+                <tr><td>2018</td><td>${puesto18}</td><td>${votos2018}</td></tr>
+                <tr><td>2024</td><td>${puesto24}</td><td>${votos2024}</td></tr>
+              </table>
+              <canvas id="grafica-cruce-puestos-anios" height="200"></canvas>`;
+
+            const ctx = document.getElementById("grafica-cruce-puestos-anios").getContext("2d");
+            new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: ['2018', '2024'],
+                datasets: [{
+                  label: `Votos (${partido})`,
+                  data: [votos2018, votos2024],
+                  backgroundColor: ['#2196f3', '#4caf50']
+                }]
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: { display: false },
+                  title: { display: true, text: 'Cruce de Puestos entre Años' }
+                }
+              }
+            });
+          }
+
+    </script>
+
+<script>
+      function ejecutarComparativaHistorica() {
+          const puesto = document.getElementById("select-puesto-historico-partido").value;
+          const seccionTitulo = document.getElementById("titulo-seccion").innerText;
+          const seccion = seccionTitulo.replace("Sección ", "").trim();
+
+          if (!seccion || !capasPorSeccion[seccion]) {
+            alert("Selecciona una sección antes de realizar la consulta.");
+            return;
+          }
+
+          const props = capasPorSeccion[seccion].props;
+          const partidos = ["PAN", "PRI", "PVEM", "MORENA"];
+          const anios = ["2018", "2021", "2024"];
+          const sufijos = { "2018": "18", "2021": "21", "2024": "24" };
+
+          let html = '<div style="margin-bottom: 10px;"><strong>Sección:</strong> ' + seccion + '</div>';
+          html += '<table style="width:100%; font-size:13px; border-collapse: collapse;" border="1">';
+          html += '<tr><th>Partido</th>' + anios.map(a => `<th>${a}</th>`).join('') + '</tr>';
+
+          const chartData = {};
+          partidos.forEach(partido => {
+            html += '<tr><td>' + partido + '</td>';
+            chartData[partido] = [];
+            anios.forEach(anio => {
+              const campo = sufijos[anio] + puesto + '_' + partido;
+              const valor = props[campo] !== undefined ? props[campo] : 0;
+              chartData[partido].push(valor);
+              html += `<td>${valor}</td>`;
+            });
+            html += '</tr>';
+          });
+
+          html += '</table><canvas id="graficaComparativaHistorica" height="300" style="margin-top:20px;"></canvas>';
+          document.getElementById("resultado-comparativa-historica").innerHTML = html;
+
+          const ctx = document.getElementById('graficaComparativaHistorica').getContext('2d');
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: anios,
+              datasets: partidos.map((partido, idx) => ({
+                label: partido,
+                data: chartData[partido],
+                backgroundColor: `hsl(${idx * 90}, 70%, 50%)`
+              }))
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                title: {
+                  display: true,
+                  text: 'Comparativa Histórica - ' + puestoNombre(puesto)
+                },
+                legend: {
+                  position: 'top'
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }
+          });
+        }
+    </script>
+
+  <script>
+    function ejecutarComparativaCicloSexenal() {
+          const partido = document.getElementById("select-partido-sexenal").value;
+          const puesto = document.getElementById("select-puesto-sexenal").value;
+          const resultadoDiv = document.getElementById("resultado-comparativa-ciclo-sexenal");
+
+          if (!currentFeatureId || !capasPorSeccion[currentFeatureId]) {
+            resultadoDiv.innerHTML = `<div style="color:red;">Primero seleccione una sección en el mapa.</div>`;
+            return;
+          }
+
+          const props = capasPorSeccion[currentFeatureId].props;
+          const ciclos = [
+            { anio: "18", etiqueta: "2018" },
+            { anio: "24", etiqueta: "2024" }
+          ];
+
+          let tablaHTML = `<h4>Comparativa sexenal de votos para <strong>${partido}</strong> (${puesto}) - Sección ${currentFeatureId}</h4>`;
+          tablaHTML += `<table border="1" style="width:100%; border-collapse: collapse; text-align:center;">
+            <tr style="background:#e0e0e0;"><th>Año</th><th>Votos</th></tr>`;
+
+          const valores = [];
+          const etiquetas = [];
+
+          ciclos.forEach(({ anio, etiqueta }) => {
+            const campo = `${anio}${puesto}_${partido}`;
+            const votos = props[campo] !== undefined ? props[campo] : 0;
+            etiquetas.push(etiqueta);
+            valores.push(votos);
+            tablaHTML += `<tr><td>${etiqueta}</td><td>${votos}</td></tr>`;
+          });
+
+          tablaHTML += `</table><canvas id="grafica-comparativa-sexenal" height="200"></canvas>`;
+          resultadoDiv.innerHTML = tablaHTML;
+
+          const ctx = document.getElementById("grafica-comparativa-sexenal").getContext("2d");
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: etiquetas,
+              datasets: [{
+                label: `Votos para ${partido}`,
+                data: valores,
+                backgroundColor: ['#388e3c', '#fbc02d']
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Comparativa Sexenal de Votos' }
+              }
+            }
+          });
+        }
+    </script>
+
+    <script>
+            function ejecutarComparativaProyeccion2027() {
+                const partido = document.getElementById("select-partido-proyeccion").value;
+                const puesto = document.getElementById("select-puesto-proyeccion").value;
+                const resultadoDiv = document.getElementById("resultado-comparativa-proyeccion-2027");
+
+                if (!currentFeatureId || !capasPorSeccion[currentFeatureId]) {
+                  resultadoDiv.innerHTML = `<div style="color:red;">Primero seleccione una sección en el mapa.</div>`;
+                  return;
+                }
+
+                const props = capasPorSeccion[currentFeatureId].props;
+
+                              // Construcción de campos históricos
+                const campo18 = `18${puesto}_${partido}`;
+                const campo24 = `24${puesto}_${partido}`;
+                const campo27 = `PROY_VOTOS_${partido}_27${puesto}`; // Ajuste aquí
+
+                console.log("Keys en props para sección", currentFeatureId, ":", Object.keys(props));
+                console.log("Campos esperados:", campo18, campo24, campo27);
+
+                const votos18 = props[campo18] !== undefined ? props[campo18] : 0;
+                const votos24 = props[campo24] !== undefined ? props[campo24] : 0;
+                const votos27 = props[campo27] !== undefined ? props[campo27] : 0;
+
+                // Tabla de resultados
+                let tablaHTML = `<h4>Comparativa y Proyección de Votos - <strong>${partido}</strong> (${puesto})</h4>`;
+                tablaHTML += `<table border="1" style="width:100%; border-collapse: collapse; text-align:center;">
+                  <tr style="background:#e0e0e0;">
+                    <th>Año</th><th>Votos</th>
+                  </tr>
+                  <tr><td>2018</td><td>${votos18}</td></tr>
+                  <tr><td>2024</td><td>${votos24}</td></tr>
+                  <tr><td>2027 (proy.)</td><td>${votos27}</td></tr>
+                </table>
+                <canvas id="grafica-comparativa-proyeccion-2027" height="200"></canvas>`;
+
+                resultadoDiv.innerHTML = tablaHTML;
+
+                const ctx = document.getElementById("grafica-comparativa-proyeccion-2027").getContext("2d");
+                new Chart(ctx, {
+                  type: 'bar',
+                  data: {
+                    labels: ['2018', '2024', '2027'],
+                    datasets: [{
+                      label: `Votos para ${partido}`,
+                      data: [votos18, votos24, votos27],
+                      backgroundColor: ['#1565c0', '#388e3c', '#f57c00']
+                    }]
+                  },
+                  options: {
+                    responsive: true,
+                    plugins: {
+                      legend: { display: false },
+                      title: { display: true, text: 'Proyección 2027' }
+                    }
+                  }
+                });
+              }
+    </script>
+
+      <script>              
+                function ejecutarComparativaHistoricaPartido() {
+                  const partidoSelect = document.getElementById("select-partido-historico");
+                  const puestoSelect = document.getElementById("select-puesto-historico-partido");
+                  const partido = partidoSelect.options[partidoSelect.selectedIndex].value;
+                  const puesto = puestoSelect.options[puestoSelect.selectedIndex].value;
+                  const resultadoDiv = document.getElementById("resultado-comparativa-historica-partido");
+
+                  if (!currentFeatureId || !capasPorSeccion[currentFeatureId]) {
+                    resultadoDiv.innerHTML = '<div style="color:red;">Primero seleccione una sección en el mapa.</div>';
+                    return;
+                  }
+
+                  const props = capasPorSeccion[currentFeatureId].props;
+                  const anioPrefix = ['18', '21', '24'];
+                  let tablaHTML = `<h4>Comparativa histórica de votos para <strong>${partido}</strong> (${puesto}) - Sección ${currentFeatureId}</h4>`;
+                  tablaHTML += `<table border="1" style="width:100%; border-collapse: collapse; text-align:center;">
+                    <tr style="background:#e0e0e0;">
+                      <th>Año</th><th>Votos</th>
+                    </tr>`;
+
+                  const valores = [];
+                  anioPrefix.forEach(anio => {
+                    const campo = `${anio}${puesto}_${partido}`;
+                    const votos = props[campo] !== undefined ? props[campo] : 0;
+                    valores.push(votos);
+                    tablaHTML += `<tr><td>20${anio}</td><td>${votos}</td></tr>`;
+                  });
+
+                  tablaHTML += '</table><canvas id="grafica-comparativa-historica-partido" height="200"></canvas>';
+                  resultadoDiv.innerHTML = tablaHTML;
+
+                  const ctx = document.getElementById("grafica-comparativa-historica-partido").getContext("2d");
+                  new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                      labels: ['2018', '2021', '2024'],
+                      datasets: [{
+                        label: `Votos para ${partido}`,
+                        data: valores,
+                        backgroundColor: ['#1976d2', '#388e3c', '#fbc02d']
+                      }]
+                    },
+                    options: {
+                      responsive: true,
+                      plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Evolución de Votos' }
+                      }
+                    }
+                  });
+                }
+                   
+
+     </script>
+
+     <script>
+        dragElement(
+          document.getElementById("panel-cruce-puestos-anios"),
+          document.getElementById("panel-cruce-puestos-anios-header")
+        );
+      </script>
+
+
+      <style>
+          select {
+              pointer-events: auto !important;
+              user-select: auto !important;
+              z-index: 10000 !important;
+            }
+
+            .select-consulta {
+              pointer-events: auto !important;
+              z-index: 10000 !important;
+            }
+
+            #panel-comparativa-historica-partido select {
+              pointer-events: auto !important;
+            }
+
+            #panel-comparativa-historica-partido {
+              pointer-events: auto !important;
+            }
+          </style>
+
+
+  </head>
+</html>

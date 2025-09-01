@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>DÍA D — AT GTO</title>
+  <link rel="stylesheet" href="../../shared/styles.css">
+</head>
+<body>
+  <header class="topbar"><h1>DÍA “D” — AT GTO</h1><div class="flex"><a class="badge" href="../../portal.html">Volver al portal</a></div></header>
+  <main class="grid" style="padding:16px;grid-template-columns:2fr 1fr">
+    <section class="card">
+      <h3>Casillas y representantes (placeholder)</h3>
+      <table class="table" id="tabla-casillas">
+        <thead><tr><th>Sección</th><th>Casilla</th><th>Representante</th><th>Estatus</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+    <aside class="card">
+      <h3>Indicadores</h3>
+      <div class="kpi">
+        <div class="item"><h2 id="kpi-turnout">—</h2><div class="muted">Turnout estimado</div></div>
+        <div class="item"><h2 id="kpi-incidencias">—</h2><div class="muted">Incidencias</div></div>
+      </div>
+      <div class="group"><button id="btn-incidencia">Reportar incidencia</button></div>
+    </aside>
+  </main>
+  <footer class="footer">Carga de ejemplo en data/diaD/casillas.json e incidencias.json</footer>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

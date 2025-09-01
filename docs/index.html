@@ -44,12 +44,12 @@
   #panel-lateral {
     width: 20%;
     height: 100%;
-    background: linear-gradient(180deg, #6273f5 0%, #1e21de 100%); /* Guinda */
-    color: #fff;
-    border-right: 1px solid #060231;
+    background: linear-gradient(180deg, #8ea3ad 0%, #dfe6e9 100%);
+    color: #2c3e50;
+    border-right: 1px solid #b2bec3;
     display: flex;
     flex-direction: column;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
     box-sizing: border-box;
     position: relative;
     align-items: stretch;
@@ -62,8 +62,8 @@
   }
 
   #panel-header {
-    background: #6b828b; /* tono más oscuro de guinda */
-    color: #fff;
+    background: #b2bec3; 
+    color: #2c3e50;
     padding: 12px 15px;
     display: flex;
     align-items: center;
@@ -86,7 +86,7 @@
   #toggle-panel {
     width: 28px;
     height: 28px;
-    background: rgba(255,255,255,0.3);
+    background: rgba(44, 62, 80, 0.1);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -95,7 +95,7 @@
     transition: all 0.3s ease;
   }
   #toggle-panel:hover {
-    background: rgba(255,255,255,0.5);
+    background: rgba(44,62,80,0.2);
     transform: scale(1.1);
   }
 
@@ -107,10 +107,10 @@
   #buscador-seccion {
     display: flex;
     margin: 10px auto;
-    background: #fff;
-    border: 1px solid #ccc;
+    background: #ffffff;
+    border: 1px solid #dfe6e9;
     border-radius: 8px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
     padding: 2px;
     width: 85%;
     min-width: 120px;
@@ -136,7 +136,7 @@
     text-align: center;
   }
   #buscador-seccion button {
-    background-color: #61526c;
+    background-color: #636e72;
     border: none;
     color: white;
     padding: 6px 10px;
@@ -145,8 +145,8 @@
     transition: all 0.3s ease;
   }
   #buscador-seccion button:hover {
-    background-color: #18195a;
-    box-shadow: 0 2px 4px rgba(215, 226, 5, 0.3);
+    background-color: #2d3436;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   }
 
   #botones-consultas {
@@ -796,7 +796,7 @@ fetch('AT_SME_27.geojson')
   .then(response => response.json())
   .then(data => {
     capaSecciones = L.geoJSON(data, {
-      style: { color: "#5A1818", weight: 2, fillOpacity: 0.07 },
+      style: { color: "#000000", weight: 2, fillOpacity: 0.07 },
       onEachFeature: (feature, layer) => {
         const props = feature.properties;
         const seccion = props.SECCION;
@@ -983,10 +983,15 @@ fetch('AT_SME_27.geojson')
       if (!encontrada) alert('⚠️ Sección no encontrada.');
     }
 
-    function mostrarSeccion(props, layer) {
+function mostrarSeccion(props, layer) {
+    const seccion = String(props.SECCION);
+
+    // Buscar en Datos_Elector.json
+    const datosSeccion = datosElectorales[seccion];
+
     // Formatear Lista Nominal (2024) - campo 24DL_LN
-    const listaNominal = props['24DL_LN']
-        ? Number(props['24DL_LN']).toLocaleString('es-MX')
+    const listaNominal = datosSeccion?.["24DL_LN"]
+        ? Number(datosSeccion["24DL_LN"]).toLocaleString('es-MX')
         : 'Sin datos';
 
     // Mostrar datos básicos en el panel lateral
@@ -1001,20 +1006,18 @@ fetch('AT_SME_27.geojson')
     const acordeon = document.getElementById('acordeon-graficas');
     if (acordeon) {
         acordeon.style.display = 'block';
-        // Colapsar todo por defecto
         acordeon.querySelectorAll('.acordeon-header').forEach(h => h.classList.remove('active'));
     }
 
     // Actualizar gráficas (solo si hay datos para la sección)
-    if (datosElectorales[props.SECCION]) {
-        const datosSeccion = datosElectorales[props.SECCION];
-
-        actualizarGrafica(datosSeccion);           // Historial (DL)
-        mostrarGraficaCompetencia(datosSeccion);   // Competencia (Top 3)
-        mostrarGraficaGanadores(datosSeccion);     // Ganadores Históricos
-        mostrarGraficaProyeccion(datosSeccion);    // Proyección 2027
+    if (datosSeccion) {
+        actualizarGrafica(datosSeccion);
+        mostrarGraficaCompetencia(datosSeccion);
+        mostrarGraficaGanadores(datosSeccion);
+        mostrarGraficaProyeccion(datosSeccion);
     }
 }
+
 
 
 
@@ -4183,61 +4186,8 @@ function hacerVentanaPartidoMovible() {
   });
 </script>
 
-<!-- Ventana flotante para video de avatar -->
-<div id="ventanaVideoHeyti" class="ventana-heytigen">
-  <div class="barra-superior-heytigen">
-    <span class="titulo-heytigen">Video de Presentación - HEYTI</span>
-    <button onclick="cerrarVideoHeyti()" class="btn-cerrar-heytigen">&times;</button>
-  </div>
-  <div class="contenido-heytigen">
-    <video id="videoHeyti" controls autoplay muted>
-      <source src="video_heytigen.mp4" type="video/mp4">
-      Tu navegador no soporta la reproducción de video.
-    </video>
-  </div>
-</div>
-
-<!-- Botón flotante para mostrar el video -->
-<button onclick="mostrarVideoHeyti()" class="btn-mostrar-heytigen">▶ Ver demo HEYTI</button>
 
 
-<script>
-  function mostrarVideoHeyti() {
-    document.getElementById('ventanaVideoHeyti').style.display = 'block';
-  }
-
-  function cerrarVideoHeyti() {
-    document.getElementById('ventanaVideoHeyti').style.display = 'none';
-    const video = document.getElementById('videoHeyti');
-    video.pause();
-    video.currentTime = 0;
-  }
-
-  // Hacer la ventana movible con el mouse (arrastrando la barra superior)
-  const barraHeyti = document.querySelector('.barra-superior-heytigen');
-  const ventanaHeyti = document.getElementById('ventanaVideoHeyti');
-
-  let offsetX_heytigen, offsetY_heytigen, isDragging_heytigen = false;
-
-  barraHeyti.addEventListener('mousedown', (e) => {
-    isDragging_heytigen = true;
-    offsetX_heytigen = e.clientX - ventanaHeyti.offsetLeft;
-    offsetY_heytigen = e.clientY - ventanaHeyti.offsetTop;
-    document.body.style.userSelect = 'none';
-  });
-
-  document.addEventListener('mouseup', () => {
-    isDragging_heytigen = false;
-    document.body.style.userSelect = 'auto';
-  });
-
-  document.addEventListener('mousemove', (e) => {
-    if (isDragging_heytigen) {
-      ventanaHeyti.style.left = `${e.clientX - offsetX_heytigen}px`;
-      ventanaHeyti.style.top = `${e.clientY - offsetY_heytigen}px`;
-    }
-  });
-</script>
 
 </body>
 </html>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AT 2027 · Portal de Módulos</title>
+<body class="portal-light">
+
+
+
+<style>
+
+  /* === Base (tema claro) === */
+  :root{
+    --bg: #899bad;
+    --text: #0f1220;
+    --muted: #6b7280;
+    --stroke: #e5e7eb;
+    --c1: #0eb4ff;  /* azul */
+    --c2: #df7bc1;  /* verde */
+    --c3: #21d07a;  /* verde */
+    --c4: #f59e0b;  /* ámbar */
+    --c5: #a78bfa;  /* lila */
+    --c6: #ff6b6b;  /* coral */
+  }
+
+/* aplica variables base */
+body.portal-light{ background: var(--bg); color: var(--text); }
+
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family: ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;
+    color:var(--text);
+    background: radial-gradient(1200px 600px at 10% -10%, #142136 0%, transparent 60%),
+                radial-gradient(1200px 600px at 110% 0%, #261338 0%, transparent 60%),
+                var(--bg);
+  }
+
+  
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; gap:14px;
+    padding:12px 16px; border-bottom:1px solid var(--stroke);
+    background: rgba(235, 178, 240, 0.8); backdrop-filter:saturate(1.1) blur(8px);
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px}
+  .brand .dot{width:10px; height:10px; border-radius:50%; background:var(--c1); box-shadow:0 0 16px var(--c1)}
+  .spacer{flex:1}
+  .quicknav{display:flex; gap:8px}
+  .pill{
+    display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--stroke);
+    border-radius:999px; color:var(--text); text-decoration:none; font-size:14px; opacity:.9;
+    transition:.18s transform, .18s opacity, .18s border-color;
+  }
+  .pill:hover{transform:translateY(-1px); opacity:1; border-color:#3a455e}
+  .pill .i{font-size:18px}
+  .pill.a{border-color:color-mix(in oklab, var(--c1) 60%, #3a455e)}
+  .pill.b{border-color:color-mix(in oklab, var(--c2) 60%, #3a455e)}
+  .pill.c{border-color:color-mix(in oklab, var(--c3) 60%, #3a455e)}
+  .pill.d{border-color:color-mix(in oklab, var(--c5) 60%, #3a455e)}
+  .pill.e{border-color:color-mix(in oklab, var(--c6) 60%, #3a455e)}
+
+  .wrap{max-width:1200px; margin:28px auto; padding:0 16px}
+  .hero{
+    display:flex; align-items:center; gap:18px; margin-bottom:18px;
+  }
+  .badge{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; color:#0e1116;
+    background:linear-gradient(90deg, var(--c1), var(--c3)); padding:4px 8px; border-radius:999px;
+    box-shadow: 0 6px 20px rgba(11,180,255,.25);
+  }
+  h1{margin:0; font-size:22px}
+  p.lead{margin:4px 0 0 0; color:var(--muted); font-size:14px}
+  .grid{
+    display:grid; grid-template-columns: repeat(12, 1fr); gap:16px; margin-top:16px;
+  }
+  .card{
+    grid-column: span 12;
+    background: #c6d2da;
+    border:1px solid var(--stroke);
+    border-radius:16px; padding:16px; position:relative; overflow:hidden;
+    transition:.2s transform, .2s border-color, .2s box-shadow;
+  }
+  .card:hover{ transform:translateY(-3px); border-color:#cf3fb7; box-shadow:0 14px 40px rgba(0,0,0,.25)}
+  .card .head{display:flex; align-items:center; gap:12px; margin-bottom:8px}
+  .card .icon{width:46px; height:46px; border-radius:12px; display:grid; place-items:center; font-size:24px; color:#0e1116}
+  .card .title{font-weight:700}
+  .card .desc{color:var(--muted); font-size:13px; margin-top:2px}
+  .card .foot{display:flex; align-items:center; gap:10px; margin-top:12px}
+  .btn{
+    appearance:none; border:1px solid var(--stroke); background:transparent; color:var(--text);
+    padding:8px 12px; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer;
+    text-decoration:none; display:inline-flex; align-items:center; gap:8px; transition:.18s transform, .18s border-color, .18s background;
+  }
+  .btn:hover{ transform:translateY(-1px); border-color:#3a455e; background:rgba(255,255,255,.03) }
+  .stat{font-size:12px; padding:6px 8px; border-radius:999px; border:1px solid var(--stroke); color:var(--muted)}
+  .ok{ border-color: color-mix(in oklab, var(--ok) 55%, var(--stroke)); color: var(--ok) }
+  .warn{ border-color: color-mix(in oklab, var(--warn) 55%, var(--stroke)); color: var(--warn) }
+  .new{ border-color: color-mix(in oklab, var(--new) 55%, var(--stroke)); color: var(--new) }
+
+  /* Colores por módulo */
+  .icon.a{ background:var(--c1) } /* Análisis */
+  .icon.b{ background:var(--c2) } /* Campo */
+  .icon.c{ background:var(--c3) } /* Ganar Todo */
+  .icon.d{ background:var(--c4) } /* Estrategia */
+  .icon.e{ background:var(--c5) } /* Operación */
+
+  /* Responsive */
+  @media (min-width:720px){ .card{ grid-column: span 6; } }
+  @media (min-width:1040px){ .card{ grid-column: span 4; } }
+
+
+
+
+    /* Light Slate SOLO cuando <body class="portal-light"> */
+        body.portal-light{
+          --bg:#f6f8fc;
+          --panel:#ffffff;
+          --text:#0f1220;
+          --muted:#5f6b82;
+          --stroke:#e6eaf2;
+          background: linear-gradient(180deg,#fbfdff 0%,#f4f7fb 100%) !important;
+        }
+
+
+        #fwResults .item{ padding:6px 8px; cursor:pointer; border-radius:8px; }
+        #fwResults .item:hover{ background:#eef7ff; }
+
+        
+        .quicknav .icon{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:28px; height:28px; margin-right:8px; border-radius:8px;
+      box-shadow:0 2px 6px rgba(0,0,0,.08);
+    }
+
+    /* colores por módulo */
+    .quicknav .icon.a{ background: var(--c1); } /* Análisis */
+    .quicknav .icon.b{ background: var(--c2); } /* Campo */
+    .quicknav .icon.c{ background: var(--c3); } /* Ganar Todo */
+    .quicknav .icon.d{ background: var(--c4); } /* Estructura */
+    .quicknav .icon.e{ background: var(--c5); } /* Operación */
+
+
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="dot"></span>AT Análisis Estratégico 2027</div>
+    <div class="spacer"></div>
+<nav class="quicknav">
+  <a class="pill a" href="#mod-analisis">
+    <span class="icon a" role="img" aria-label="Análisis">📊</span> Análisis
+  </a>
+  <a class="pill b" href="#mod-ganartodo">
+    <span class="icon b" role="img" aria-label="Ganar Todo">🏆</span> Ganar Todo
+  </a>
+  <a class="pill c" href="#mod-campo">
+    <span class="icon c" role="img" aria-label="Campo">🗺️</span> Campo
+  </a>
+  <a class="pill d" href="#mod-estructura">
+    <span class="icon d" role="img" aria-label="Estructura de representantes de casilla">👥</span> Estructura
+  </a>
+  <a class="pill e" href="#mod-operacion">
+    <span class="icon e" role="img" aria-label="Operación Día D">🪪</span> Operación Día D
+  </a>
+</nav>
+
+  </header>
+
+  <main class="wrap">
+    <div class="hero">
+      <span class="badge">Portal de módulos</span>
+      <h1>Panel ejecutivo</h1>
+      <p class="lead">UI listo para demo. Cada tarjeta abre su módulo (los tres nuevos incluyen stub).</p>
+    </div>
+
+    <section class="grid">
+      <!-- ANALISIS -->
+      <article id="mod-analisis" class="card">
+        <div class="head">
+          <div class="icon a">📊</div>
+          <div>
+            <div class="title">Análisis Territorial</div>
+            <div class="desc">Mapas, consultas y comparativas (ya integrado).</div>
+          </div>
+          <div class="spacer"></div>
+          <div class="stat ok">Listo</div>
+        </div>
+        <div class="foot">
+          <a class="btn" href="/../docs/index.html">Abrir módulo</a>
+          <a class="btn" href="#mod-ganartodo">Siguiente →</a>
+        </div>
+      </article>
+
+            <!-- GANARTODO -->
+      <article id="mod-ganartodo" class="card">
+        <div class="head">
+          <div class="icon b">🏆</div>
+          <div>
+            <div class="title">Ganar Todo</div>
+            <div class="desc">Estrategia integral y priorización</div>
+          </div>
+          <div class="spacer"></div>
+          <div class="stat warn">En progreso</div>
+        </div>
+        <div class="foot">
+          <a class="btn" href="/../docs/index.html">Abrir módulo</a>
+          <a class="btn" href="#mod-campo">Siguiente →</a>
+        </div>
+      </article>
+
+      <!-- CAMPO -->
+      <article id="mod-campo" class="card">
+        <div class="head">
+          <div class="icon c">🗺️</div>
+          <div>
+            <div class="title">Campo</div>
+            <div class="desc">Levantamientos, rutas y control (repositorio actual).</div>
+          </div>
+          <div class="spacer"></div>
+          <div class="stat warn">En progreso</div>
+        </div>
+        <div class="foot">
+          <a class="btn" href="/modules/campo/docs/index.html">Abrir módulo</a>
+          <a class="btn" href="#mod-estructura">Siguiente →</a>
+        </div>
+      </article>
+
+
+
+      <!-- ESTRUCTURA (stub) -->
+      <article id="mod-estructura" class="card">
+        <div class="head">
+          <div class="icon d">👥</div>
+          <div>
+            <div class="title">Estructura</div>
+            <div class="desc">Representantes, escenarios y rutas de crecimiento.</div>
+          </div>
+          <div class="spacer"></div>
+          <div class="stat new">Nuevo</div>
+        </div>
+        <div class="foot">
+          <a class="btn" href="/modules/mod-estructura.html">Abrir módulo</a>
+          <a class="btn" href="#mod-operacion">Siguiente →</a>
+        </div>
+      </article>
+
+      <!-- OPERACIÓN (stub) -->
+      <article id="mod-operacion" class="card">
+        <div class="head">
+          <div class="icon e">🪪</div>
+          <div>
+            <div class="title">Operación</div>
+            <div class="desc">Estructuras, metas y seguimiento.</div>
+          </div>
+          <div class="spacer"></div>
+          <div class="stat new">Nuevo</div>
+        </div>
+        <div class="foot">
+          <a class="btn" href="/modules/mod-operacion.html">Abrir módulo</a>
+          <a class="btn" href="#mod-analisis">Volver ↑</a>
+        </div>
+      </article>
+    </section>
+  </main>
+
+
+  <script>
+/* ====== CONFIG ====== */
+const DATA_URL = 'data/secciones.geojson';
+const STYLE_BASE = { color:'#3a7bd5', weight:1, fillOpacity:.08 };
+const STYLE_HIGHLIGHT = { color:'#0bb4ff', weight:3, fillOpacity:.15 };
+
+/* Posibles nombres de campos (toma el 1º que encuentre) */
+const K = {
+  CLAVE: ['CLAVE','SEC','SECCION','CVESEC','CVE_SECC','SECC'],
+  AMBITO:['AMBITO','AMB','NIVEL','TIPO'],
+  MUN:   ['MUNICIPIO','MUN','NOM_MUN','MUN_NOM','MUNICIPIO_NOM'],
+  DF:    ['DF','DISTRITO_FEDERAL','DIST_FED'],
+  DL:    ['DL','DISTRITO_LOCAL','DIST_LOC'],
+  LN:    ['LN','LISTA_NOMINAL','LN2024','LN_2024','LN18']
+};
+
+/* ====== STATE ====== */
+let map = window._leafletMap || null;
+let layerSecciones, labelsLayer;
+const layerByFid = new Map();
+const idx = { seccion:new Map(), mun:new Map(), df:new Map(), dl:new Map() };
+let features = [];
+let selectedFid = null;
+
+/* Utils */
+function prop(feat, keys){ const p = feat.properties||{}; for(const k of keys){ if(p[k]!=null) return p[k]; } }
+function norm(s){ return String(s??'').normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase(); }
+function setText(id, val){ const el = document.getElementById(id); if (el) el.textContent = val; }
+
+
+
+/* ====== SEARCH WIRING ====== */
+const btnBuscar = document.getElementById('fwBtnBuscar');
+const inp = document.getElementById('fwSearch');
+const res = document.getElementById('fwResults');
+const chips = document.querySelectorAll('.fw-chiprow .chip');
+
+chips.forEach(ch=>{
+  ch.addEventListener('click', ()=>{
+    chips.forEach(x=>x.classList.remove('active'));
+    ch.classList.add('active');
+    if (inp && inp.value.trim()) pintarResultados(buscar(inp.value.trim()));
+  });
+});
+
+inp && inp.addEventListener('input', ()=>{
+  const q = inp.value.trim();
+  if (!q){ res.innerHTML=''; return; }
+  pintarResultados(buscar(q));
+});
+btnBuscar && btnBuscar.addEventListener('click', ()=>{
+  const q = (inp?.value||'').trim(); if (!q) return;
+  const lista = buscar(q); if (lista.length) seleccionarPorFid(lista[0].fid);
+});
+
+/* ====== SEARCH ====== */
+function scopeActivo(){
+  const a = document.querySelector('.fw-chiprow .chip.active');
+  return a ? (a.dataset.scope || 'SECCION') : 'SECCION';
+}
+function buscar(q){
+  const out=[]; const sc=scopeActivo(); const qn=norm(q);
+  if (sc==='SECCION'){
+    const exact = idx.seccion.get(qn);
+    if (exact) out.push({fid:exact,label:'Sección '+q.toUpperCase()});
+    for (const [k,fid] of idx.seccion){ if(out.length>=10) break; if(!exact && k.includes(qn)) out.push({fid,label:'Sección '+k.toUpperCase()}); }
+  } else if (sc==='MUN'){
+    for (const [k,fid] of idx.mun){ if(out.length>=10) break; if(k.includes(qn)) out.push({fid,label:'Municipio '+k.toUpperCase()}); }
+  } else if (sc==='DF'){
+    for (const [k,fid] of idx.df){ if(out.length>=10) break; if(String(k).includes(q)) out.push({fid,label:'DF '+k}); }
+  } else if (sc==='DL'){
+    for (const [k,fid] of idx.dl){ if(out.length>=10) break; if(String(k).includes(q)) out.push({fid,label:'DL '+k}); }
+  }
+  return out;
+}
+function pintarResultados(lista){
+  if (!res) return;
+  if (!lista.length){ res.innerHTML = '<div style="padding:6px 8px;opacity:.7">Sin resultados</div>'; return; }
+  res.innerHTML = lista.map(it=>`<div class="item" data-fid="${it.fid}">${it.label}</div>`).join('');
+  res.querySelectorAll('.item').forEach(el=> el.addEventListener('click', ()=> seleccionarPorFid(el.dataset.fid)));
+}
+
+/* ====== SELECT & UI ====== */
+function seleccionarPorFid(fid){
+  const layer = layerByFid.get(fid); if (!layer) return;
+
+  if (selectedFid && layerByFid.get(selectedFid)) layerByFid.get(selectedFid).setStyle(STYLE_BASE);
+  selectedFid = fid; layer.setStyle(STYLE_HIGHLIGHT);
+
+  const b = layer.getBounds(); map.fitBounds(b.pad(0.2));
+  const feat = layer.feature;
+
+  setText('dbClave',     prop(feat,K.CLAVE)  ?? '–');
+  setText('dbAmbito',    prop(feat,K.AMBITO) ?? '–');
+  setText('dbMunicipio', prop(feat,K.MUN)    ?? '–');
+  setText('dbLN',        prop(feat,K.LN)     ?? '–');
+
+  labelsLayer.clearLayers();
+  const center = b.getCenter();
+  const lbl = prop(feat,K.CLAVE) || prop(feat,K.MUN) || '—';
+  L.marker(center, { icon: L.divIcon({ className:'sec-label', html:`<div style="padding:2px 6px;border-radius:8px;background:#0bb4ff;color:#00131a;font-weight:700;font-size:12px">${lbl}</div>` })}).addTo(labelsLayer);
+
+  actualizarCharts(feat);
+}
+
+/* ====== LABELS API (botones Visuales) ====== */
+window.mostrarEtiquetasVecinas = function(){
+  if (!features.length) return; labelsLayer.clearLayers();
+  features.forEach(f=>{
+    const lyr = layerByFid.get(f._fid); if (!lyr) return;
+    const center = lyr.getBounds().getCenter();
+    const lbl = prop(f,K.CLAVE) || prop(f,K.MUN) || '';
+    if (!lbl) return;
+    L.marker(center, { icon: L.divIcon({ className:'sec-label', html:`<div style="padding:2px 6px;border-radius:8px;background:#3a3f4b;color:#fff;font-size:11px">${lbl}</div>` })}).addTo(labelsLayer);
+  });
+};
+window.ocultarEtiquetasVecinas = function(){ labelsLayer.clearLayers(); };
+
+/* ====== CHART PLACEHOLDERS ====== */
+function actualizarCharts(feat){
+  const hasChart = typeof window.Chart === 'function';
+  ['ch1','ch2','ch3','ch4'].forEach(id=>{
+    const c = document.getElementById(id); if (!c) return;
+    if (!hasChart){
+      const p = c.parentElement; p.style.display='grid'; p.style.placeItems='center'; p.style.color='#6b7280';
+      p.innerHTML = `<div style="font-size:12px;opacity:.8">Gráfica ${id.toUpperCase()} (placeholder)</div>`;
+    } else {
+      new Chart(c.getContext('2d'), {
+        type:'bar',
+        data:{ labels:['2018','2021','2024'], datasets:[{ label:'% votación', data:[20,28,34] }] },
+        options:{ plugins:{ legend:{display:false}}, scales:{ y:{ beginAtZero:true } } }
+      });
+    }
+  });
+}
+</script>
+
+</body>
+</html>

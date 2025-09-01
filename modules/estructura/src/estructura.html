@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ESTRUCTURA — AT GTO</title>
+  <link rel="stylesheet" href="../../shared/styles.css">
+</head>
+<body>
+  <header class="topbar"><h1>ESTRUCTURA–CAMPAÑA — AT GTO</h1><div class="flex"><a class="badge" href="../../portal.html">Volver al portal</a></div></header>
+  <main style="padding:16px" class="grid">
+    <section class="card">
+      <h3>Organigrama (placeholder)</h3>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+        <div class="card"><strong>Coordinación Estatal</strong><br><span class="muted">Titular</span></div>
+        <div class="card"><strong>Coordinación Distrital</strong><br><span class="muted">14 distritos</span></div>
+        <div class="card"><strong>Coordinación Municipal</strong><br><span class="muted">46 municipios</span></div>
+      </div>
+    </section>
+    <section class="card">
+      <h3>Metas por sección</h3>
+      <table class="table" id="tabla-metas">
+        <thead><tr><th>Sección</th><th>Meta</th><th>Avance</th><th>%</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+  <footer class="footer">Carga tus metas en data/estructura/metas.json</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

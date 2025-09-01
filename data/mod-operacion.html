@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Operación · AT 2027</title>
+<style>
+  :root{ --c:#dc0ab4; --bg:#0e1116; --panel:#151922; --text:#e9edf2; --muted:#9aa3b2; --stroke:#293041; }
+  body{margin:0; font-family:ui-sans-serif,system-ui; color:var(--text); background:var(--bg)}
+  .top{display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--stroke); background:#0f131b}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--c);box-shadow:0 0 16px var(--c)}
+  .wrap{max-width:1100px;margin:22px auto;padding:0 16px}
+  h1{margin:0 0 10px 0;font-size:22px}
+  p{color:var(--muted)}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)); border:1px solid var(--stroke); border-radius:14px; padding:14px}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid var(--stroke);color:var(--text);text-decoration:none}
+</style></head><body>
+  <header class="top"><span class="dot"></span><strong>AT 2027 / Operación</strong><span style="flex:1"></span><a class="pill" href="portal.html">← Portal</a></header>
+  <main class="wrap">
+    <h1>⚙️ Operación</h1>
+    <p>UI de ejemplo: estructura, metas y seguimiento.</p>
+    <section class="grid">
+      <div class="card"><h3>Estructura</h3><ul><li>Coordinaciones</li><li>Seccionales</li><li>Voluntariado</li></ul></div>
+      <div class="card"><h3>Metas</h3><div style="height:180px; border:1px dashed var(--stroke); border-radius:10px; display:grid; place-items:center; color:var(--muted)">Tabla/KPIs</div></div>
+      <div class="card"><h3>Calendario</h3><div style="height:160px; border:1px dashed var(--stroke); border-radius:10px; display:grid; place-items:center; color:var(--muted)">Gantt mini</div></div>
+      <div class="card"><h3>Alertas</h3><ul><li>Faltantes de meta</li><li>Capacitaciones</li><li>Reportes pendientes</li></ul></div>
+    </section>
+  </main>
+</body></html>

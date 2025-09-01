@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>CAMPO — AT GTO</title>
+  <link rel="stylesheet" href="../../shared/styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+  <header class="topbar"><h1>CAMPO — AT GTO</h1><div class="flex"><a class="badge" href="../../portal.html">Volver al portal</a></div></header>
+  <div class="layout">
+    <aside class="sidebar">
+      <h3>Filtros</h3>
+      <div class="group">
+        <label>Brigada</label>
+        <select id="f-brigada" class="input"><option value="">Todas</option></select>
+      </div>
+      <div class="group">
+        <label>Fecha</label>
+        <input id="f-fecha" type="date" class="input">
+      </div>
+      <div class="group">
+        <button id="btn-aplicar">Aplicar</button>
+        <button id="btn-export">Exportar CSV</button>
+      </div>
+      <h3>KPI</h3>
+      <div class="kpi">
+        <div class="item"><h2 id="kpi-meta">—</h2><div class="muted">Meta visitas</div></div>
+        <div class="item"><h2 id="kpi-real">—</h2><div class="muted">Visitas realizadas</div></div>
+      </div>
+    </aside>
+    <main style="position:relative">
+      <div id="map"></div>
+      <div class="legend card">Leyenda CAMPO</div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
